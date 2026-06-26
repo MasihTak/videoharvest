@@ -18,6 +18,7 @@
   "dependencies": {
     "@tauri-apps/api": "^2.11.1",
     "@tauri-apps/plugin-opener": "^2.5.4",
+    "@tauri-apps/plugin-sql": "^2.4.0",
     "bootstrap": "^5.3.8",
     "pinia": "^3.0.4",
     "vue": "^3.5.38",
@@ -37,8 +38,8 @@
     "vite": "^8.0.16"
   },
   "lint-staged": {
-        "*.{js,vue}": [
-            "eslint --fix"
-        ]
-    }
+    "*.{js,vue}": [
+      "eslint --fix"
+    ]
+  }
 }
