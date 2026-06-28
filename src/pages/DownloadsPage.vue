@@ -68,20 +68,22 @@ onMounted(() => store.load());
           v-if="item.status === 'downloading'"
           class="progress mb-2"
           role="progressbar"
+          :aria-valuenow="Math.round(item.progress)"
+          aria-valuemin="0"
+          aria-valuemax="100"
         >
           <div
             class="progress-bar"
             :style="{ width: item.progress + '%' }"
-          >
-            {{ Math.round(item.progress) }}%
-          </div>
+          />
         </div>
 
         <div class="d-flex justify-content-between align-items-center">
           <span class="text-muted small">
             <template v-if="item.status === 'downloading'">
-              {{ humanSize(item.speed) }}/s
-              <span v-if="item.eta != null">· ETA {{ eta(item.eta) }}</span>
+              {{ Math.round(item.progress) }}%
+              <span v-if="item.speed"> · {{ humanSize(item.speed) }}/s</span>
+              <span v-if="item.eta != null"> · ETA {{ eta(item.eta) }}</span>
             </template>
             <template v-else-if="item.location">
               {{ item.location }}

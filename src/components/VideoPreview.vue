@@ -50,6 +50,32 @@ const channel = computed(() => props.data.channel ?? props.data.uploader);
             :alt="data.title"
             class="img-fluid w-100 h-100 object-fit-cover"
           />
+          <div
+            v-else
+            class="w-100 h-100 d-flex align-items-center justify-content-center bg-secondary-subtle text-secondary"
+            style="min-height: 140px;"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="32"
+              height="32"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect
+                x="2"
+                y="4"
+                width="20"
+                height="16"
+                rx="2"
+              />
+              <path d="m10 9 5 3-5 3V9z" />
+            </svg>
+          </div>
         </div>
         <div class="col-md-7">
           <div class="card-body">

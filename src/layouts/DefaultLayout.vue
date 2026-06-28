@@ -9,6 +9,14 @@ const sidebarOpen = ref(false);
 
 <template>
   <div class="d-flex min-vh-100">
+    <Transition name="backdrop">
+      <div
+        v-if="sidebarOpen"
+        class="sidebar-backdrop d-md-none"
+        aria-hidden="true"
+        @click="sidebarOpen = false"
+      />
+    </Transition>
     <AppSidebar
       :open="sidebarOpen"
       @close="sidebarOpen = false"
@@ -22,3 +30,29 @@ const sidebarOpen = ref(false);
     </div>
   </div>
 </template>
+
+<style scoped>
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1039;
+}
+
+.backdrop-enter-active,
+.backdrop-leave-active {
+  transition: opacity 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.backdrop-enter-from,
+.backdrop-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop-enter-active,
+  .backdrop-leave-active {
+    transition: none;
+  }
+}
+</style>

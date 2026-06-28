@@ -198,17 +198,36 @@ function toggleCollapsed() {
   width: 248px;
   padding: 1rem;
   gap: 1.5rem;
+  overflow: hidden;
   background-color: var(--bs-dark);
   color: #fff;
-  transition: width 0.2s ease;
+  will-change: width;
+  transition: width 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .app-sidebar.is-collapsed {
   width: 76px;
 }
 
+.sidebar-label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  opacity: 1;
+  transition: opacity 0.1s cubic-bezier(0.25, 1, 0.5, 1);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 .app-sidebar.is-collapsed .sidebar-label {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar,
+  .sidebar-label {
+    transition: none;
+  }
 }
 
 .sidebar-logo {
@@ -222,7 +241,7 @@ function toggleCollapsed() {
   border-radius: 14px;
   background-color: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .sidebar-logo:hover {
@@ -237,7 +256,7 @@ function toggleCollapsed() {
   border-radius: 14px;
   color: rgba(255, 255, 255, 0.65);
   text-decoration: none;
-  transition: color 0.15s ease, background-color 0.15s ease;
+  transition: color 0.15s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .sidebar-icon {
@@ -250,7 +269,7 @@ function toggleCollapsed() {
   border-radius: 12px;
   background-color: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .sidebar-label {
@@ -282,7 +301,7 @@ function toggleCollapsed() {
     inset: 0 auto 0 0;
     z-index: 1040;
     transform: translateX(-100%);
-    transition: transform 0.2s ease;
+    transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   .app-sidebar.is-open {
