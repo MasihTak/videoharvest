@@ -15,7 +15,7 @@ export default defineConfig(async () => ({
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: `@use "@assets/scss/style.scss" as *;`,
+        additionalData: `@import "@/assets/scss/utilities/tokens";`,
         silenceDeprecations: [
           "color-functions",
           "global-builtin",
