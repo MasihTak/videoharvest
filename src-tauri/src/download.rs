@@ -1,17 +1,22 @@
 use std::collections::HashMap;
+use std::io::{BufRead, BufReader};
+use std::path::Path;
+use std::process::{Child, Stdio};
 use std::sync::Mutex;
+use std::thread;
 
 use tauri::{AppHandle, Emitter, Manager};
-use tauri_plugin_shell::process::{CommandChild, CommandEvent};
-use tauri_plugin_shell::ShellExt;
+
+use crate::binaries;
 
 #[derive(Default)]
-pub struct ProcessRegistry(pub Mutex<HashMap<String, CommandChild>>);
+pub struct ProcessRegistry(pub Mutex<HashMap<String, Child>>);
 
 #[derive(Clone, serde::Serialize)]
 struct OutputPayload {
     id: String,
     line: String,
+    kind: &'static str,
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -20,47 +25,73 @@ struct DonePayload {
     code: Option<i32>,
 }
 
-pub fn run_sidecar(
+pub fn run(
     app: AppHandle,
     registry: tauri::State<'_, ProcessRegistry>,
-    binary: &str,
+    program: &Path,
     id: String,
     args: Vec<String>,
 ) -> Result<(), String> {
-    let (mut rx, child) = app
-        .shell()
-        .sidecar(binary)
-        .map_err(|e| e.to_string())?
-        .args(args)
+    let mut child = binaries::command(program)
+        .args(&args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .spawn()
         .map_err(|e| e.to_string())?;
 
+    let stdout = child.stdout.take().ok_or("no stdout handle")?;
+    let stderr = child.stderr.take().ok_or("no stderr handle")?;
     registry.0.lock().unwrap().insert(id.clone(), child);
 
-    tauri::async_runtime::spawn(async move {
-        while let Some(event) = rx.recv().await {
-            match event {
-                CommandEvent::Stdout(bytes) | CommandEvent::Stderr(bytes) => {
-                    let line = String::from_utf8_lossy(&bytes).into_owned();
-                    let _ = app.emit("sidecar://output", OutputPayload { id: id.clone(), line });
-                }
-                CommandEvent::Terminated(payload) => {
-                    let _ = app.emit("sidecar://done", DonePayload { id: id.clone(), code: payload.code });
-                    app.state::<ProcessRegistry>().0.lock().unwrap().remove(&id);
-                    break;
-                }
-                _ => {}
+    let stderr_thread = {
+        let app = app.clone();
+        let id = id.clone();
+        thread::spawn(move || {
+            for line in BufReader::new(stderr).lines().map_while(Result::ok) {
+                let _ = app.emit(
+                    "sidecar://output",
+                    OutputPayload {
+                        id: id.clone(),
+                        line,
+                        kind: "stderr",
+                    },
+                );
             }
+        })
+    };
+
+    thread::spawn(move || {
+        for line in BufReader::new(stdout).lines().map_while(Result::ok) {
+            let _ = app.emit(
+                "sidecar://output",
+                OutputPayload {
+                    id: id.clone(),
+                    line,
+                    kind: "stdout",
+                },
+            );
         }
+        // Drain stderr fully before signalling done, so consumers (e.g. the
+        // metadata fetch) see the error text before the done event.
+        let _ = stderr_thread.join();
+        let code = app
+            .state::<ProcessRegistry>()
+            .0
+            .lock()
+            .unwrap()
+            .remove(&id)
+            .and_then(|mut child| child.wait().ok())
+            .and_then(|status| status.code());
+        let _ = app.emit("sidecar://done", DonePayload { id, code });
     });
 
     Ok(())
 }
 
-/// Kill a running sidecar by id. No-op if it already finished.
+/// Kill a running process by id. No-op if it already finished or was cancelled.
 pub fn cancel(registry: tauri::State<'_, ProcessRegistry>, id: &str) -> Result<(), String> {
     let child = registry.0.lock().unwrap().remove(id);
-    if let Some(child) = child {
+    if let Some(mut child) = child {
         child.kill().map_err(|e| e.to_string())?;
     }
     Ok(())

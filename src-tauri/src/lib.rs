@@ -1,3 +1,4 @@
+mod binaries;
 mod commands;
 mod db;
 mod download;
@@ -6,7 +7,6 @@ mod download;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
@@ -18,6 +18,10 @@ pub fn run() {
             commands::run_ytdlp,
             commands::run_ffmpeg,
             commands::cancel_process,
+            commands::binaries_ready,
+            commands::bootstrap_binaries,
+            commands::ytdlp_version,
+            commands::update_ytdlp,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
