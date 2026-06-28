@@ -19,6 +19,8 @@ const platform = computed(() => {
 const count = computed(
   () => props.data.playlist_count ?? props.data.entries?.length,
 );
+
+const channel = computed(() => props.data.channel ?? props.data.uploader);
 </script>
 
 <template>
@@ -54,6 +56,12 @@ const count = computed(
           <h2 class="h5 card-title mt-3">
             {{ data.title }}
           </h2>
+          <p
+            v-if="channel"
+            class="card-text text-muted small mb-1"
+          >
+            {{ channel }}
+          </p>
           <p
             v-if="duration"
             class="card-text text-muted mb-0"
