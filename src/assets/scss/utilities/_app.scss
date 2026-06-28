@@ -1,0 +1,19 @@
+// Global rendering
+body {
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-variant-numeric: tabular-nums;
+}
+
+// Heading tightening — system-ui kerning improves at negative tracking
+h1, h2, h3,
+.h1, .h2, .h3 {
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+h4, h5, h6,
+.h4, .h5, .h6 {
+  letter-spacing: -0.015em;
+}
