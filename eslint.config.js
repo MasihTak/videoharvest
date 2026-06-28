@@ -14,6 +14,7 @@ export default [
     languageOptions: {
       globals: {
         process: "readonly",
+        fetch: "readonly",
       },
     },
     files: ["**/*.{js,vue}"],
