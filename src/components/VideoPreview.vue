@@ -37,23 +37,30 @@ const count = computed(
 );
 
 const channel = computed(() => props.data.channel ?? props.data.uploader);
+
+const meta = computed(() => {
+  const parts = [];
+  if (channel.value) parts.push(channel.value);
+  if (duration.value) parts.push(duration.value);
+  if (isPlaylist.value && count.value) parts.push(`${count.value} videos`);
+  return parts.join(" · ");
+});
 </script>
 
 <template>
   <div>
     <div class="card overflow-hidden">
       <div class="row g-0">
-        <div class="col-md-5">
+        <div class="col-md-5 thumb-col">
           <img
             v-if="data.thumbnail"
             :src="data.thumbnail"
             :alt="data.title"
-            class="img-fluid w-100 h-100 object-fit-cover"
+            class="thumb-img"
           />
           <div
             v-else
-            class="w-100 h-100 d-flex align-items-center justify-content-center bg-secondary-subtle text-secondary"
-            style="min-height: 140px;"
+            class="thumb-fallback d-flex align-items-center justify-content-center bg-secondary-subtle text-secondary"
           >
             <svg
               viewBox="0 0 24 24"
@@ -79,48 +86,84 @@ const channel = computed(() => props.data.channel ?? props.data.uploader);
         </div>
         <div class="col-md-7">
           <div class="card-body">
-            <div class="mb-2">
+            <div class="d-flex gap-1 align-items-center mb-2 flex-wrap">
               <span
-                class="badge me-1 p-2 rounded-2"
+                class="badge"
                 :class="isPlaylist ? 'text-bg-info' : 'text-bg-primary'"
               >
                 {{ isPlaylist ? "Playlist" : "Video" }}
               </span>
-              <span class="badge text-bg-secondary p-2 rounded-2">
+              <span class="badge text-bg-secondary">
                 {{ platform }}
               </span>
-              <span
-                v-if="isPlaylist && count"
-                class="text-muted small ms-2"
-              >
-                {{ count }} videos
-              </span>
             </div>
-            <h2 class="h5 card-title mt-3">
+
+            <h2 class="h5 fw-semibold mb-1 mt-2">
               {{ data.title }}
             </h2>
+
             <p
-              v-if="channel"
-              class="card-text text-muted small mb-1"
+              v-if="meta"
+              class="text-muted small mb-0"
             >
-              {{ channel }}
-            </p>
-            <p
-              v-if="duration"
-              class="card-text text-muted mb-0"
-            >
-              {{ duration }}
+              {{ meta }}
             </p>
           </div>
         </div>
       </div>
     </div>
 
-    <FormatSelector
-      v-if="!isPlaylist && data.formats?.length"
-      :formats="data.formats"
-      class="mt-4"
-      @download="onDownload"
-    />
+    <Transition name="fade-up">
+      <FormatSelector
+        v-if="!isPlaylist && data.formats?.length"
+        :formats="data.formats"
+        class="mt-3"
+        @download="onDownload"
+      />
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+.thumb-col {
+  position: relative;
+  min-height: 160px;
+}
+
+.thumb-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumb-fallback {
+  position: absolute;
+  inset: 0;
+}
+
+@media (max-width: 767.98px) {
+  .thumb-col {
+    aspect-ratio: 16 / 9;
+    min-height: unset;
+  }
+}
+
+.fade-up-enter-active {
+  transition:
+    opacity 220ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.fade-up-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up-enter-active { transition: opacity 150ms ease; }
+  .fade-up-enter-from { transform: none; }
+}
+</style>
