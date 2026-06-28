@@ -7,7 +7,7 @@ defineEmits(["submit"]);
 </script>
 
 <template>
-  <form @submit.prevent="$emit('submit', url)">
+  <form @submit.prevent="$emit('submit', url.trim())">
     <div class="input-group input-group-lg shadow-sm">
       <span class="input-group-text bg-body">
         🔗
@@ -18,6 +18,7 @@ defineEmits(["submit"]);
         class="form-control border-start-0"
         placeholder="Paste a video or playlist URL…"
         aria-label="Video or playlist URL"
+        required
       />
       <button
         type="submit"
