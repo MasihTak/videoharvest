@@ -8,6 +8,17 @@ const props = defineProps({
 const isPlaylist = computed(() => props.data._type === "playlist");
 
 const duration = computed(() => props.data.duration_string);
+
+const platform = computed(() => {
+  const extractor = props.data.extractor;
+  if (!extractor) return "Unknown";
+  const name = extractor.split(":")[0];
+  return name.charAt(0).toUpperCase() + name.slice(1);
+});
+
+const count = computed(
+  () => props.data.playlist_count ?? props.data.entries?.length,
+);
 </script>
 
 <template>
@@ -23,13 +34,24 @@ const duration = computed(() => props.data.duration_string);
       </div>
       <div class="col-md-7">
         <div class="card-body">
-          <span
-            class="badge mb-2"
-            :class="isPlaylist ? 'text-bg-info' : 'text-bg-primary'"
-          >
-            {{ isPlaylist ? "Playlist" : "Video" }}
-          </span>
-          <h2 class="h5 card-title">
+          <div class="mb-2">
+            <span
+              class="badge me-1 p-2 rounded-2"
+              :class="isPlaylist ? 'text-bg-info' : 'text-bg-primary'"
+            >
+              {{ isPlaylist ? "Playlist" : "Video" }}
+            </span>
+            <span class="badge text-bg-secondary p-2 rounded-2">
+              {{ platform }}
+            </span>
+            <span
+              v-if="isPlaylist && count"
+              class="text-muted small ms-2"
+            >
+              {{ count }} videos
+            </span>
+          </div>
+          <h2 class="h5 card-title mt-3">
             {{ data.title }}
           </h2>
           <p
