@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from "vue";
 import { RouterLink } from "vue-router";
 
 defineProps({
@@ -10,33 +11,183 @@ defineProps({
 
 defineEmits(["close"]);
 
-const links = [
-  { to: "/dashboard", label: "Dashboard" },
-  { to: "/downloads", label: "Downloads" },
-  { to: "/scheduler", label: "Scheduler" },
-  { to: "/logs", label: "Logs" },
-  { to: "/settings", label: "Settings" },
-];
+const collapsed = ref(localStorage.getItem("sidebar-collapsed") === "true");
+
+function toggleCollapsed() {
+  collapsed.value = !collapsed.value;
+  localStorage.setItem("sidebar-collapsed", String(collapsed.value));
+}
 </script>
 
 <template>
   <aside
-    class="app-sidebar bg-dark text-white p-3 flex-shrink-0"
-    :class="{ 'is-open': open }"
+    class="app-sidebar flex-shrink-0 d-flex flex-column"
+    :class="{ 'is-open': open, 'is-collapsed': collapsed }"
   >
-    <h1 class="h5 mb-4">
-      VideoHarvest
-    </h1>
-    <nav class="nav flex-column gap-1">
+    <button
+      type="button"
+      class="sidebar-logo"
+      :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+      @click="toggleCollapsed"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        width="22"
+        height="22"
+        fill="currentColor"
+      >
+        <circle
+          cx="8"
+          cy="8"
+          r="3"
+        />
+        <circle
+          cx="16"
+          cy="8"
+          r="3"
+        />
+        <circle
+          cx="8"
+          cy="16"
+          r="3"
+        />
+        <circle
+          cx="16"
+          cy="16"
+          r="3"
+        />
+      </svg>
+    </button>
+
+    <nav class="sidebar-nav d-flex flex-column gap-2">
       <RouterLink
-        v-for="link in links"
-        :key="link.to"
-        :to="link.to"
-        class="nav-link text-white rounded px-3 py-2"
-        active-class="active bg-primary"
+        to="/dashboard"
+        class="sidebar-item"
+        active-class="is-active"
         @click="$emit('close')"
       >
-        {{ link.label }}
+        <span class="sidebar-icon">
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z" />
+          </svg>
+        </span>
+        <span class="sidebar-label">Dashboard</span>
+      </RouterLink>
+
+      <RouterLink
+        to="/downloads"
+        class="sidebar-item"
+        active-class="is-active"
+        @click="$emit('close')"
+      >
+        <span class="sidebar-icon">
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 3v12m0 0 4-4m-4 4-4-4" />
+            <path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2" />
+          </svg>
+        </span>
+        <span class="sidebar-label">Downloads</span>
+      </RouterLink>
+
+      <RouterLink
+        to="/scheduler"
+        class="sidebar-item"
+        active-class="is-active"
+        @click="$emit('close')"
+      >
+        <span class="sidebar-icon">
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect
+              x="3"
+              y="4"
+              width="18"
+              height="17"
+              rx="2"
+            />
+            <path d="M3 9h18M8 2v4m8-4v4" />
+          </svg>
+        </span>
+        <span class="sidebar-label">Scheduler</span>
+      </RouterLink>
+
+      <RouterLink
+        to="/logs"
+        class="sidebar-item"
+        active-class="is-active"
+        @click="$emit('close')"
+      >
+        <span class="sidebar-icon">
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />
+          </svg>
+        </span>
+        <span class="sidebar-label">Logs</span>
+      </RouterLink>
+    </nav>
+
+    <nav class="sidebar-footer d-flex flex-column gap-2 mt-auto">
+      <RouterLink
+        to="/settings"
+        class="sidebar-item"
+        active-class="is-active"
+        @click="$emit('close')"
+      >
+        <span class="sidebar-icon">
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="3"
+            />
+            <path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z" />
+          </svg>
+        </span>
+        <span class="sidebar-label">Settings</span>
       </RouterLink>
     </nav>
   </aside>
@@ -44,7 +195,85 @@ const links = [
 
 <style scoped>
 .app-sidebar {
-  width: 240px;
+  width: 248px;
+  padding: 1rem;
+  gap: 1.5rem;
+  background-color: var(--bs-dark);
+  color: #fff;
+  transition: width 0.2s ease;
+}
+
+.app-sidebar.is-collapsed {
+  width: 76px;
+}
+
+.app-sidebar.is-collapsed .sidebar-label {
+  display: none;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  color: #fff;
+  border-radius: 14px;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background-color 0.15s ease;
+}
+
+.sidebar-logo:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.4rem;
+  border-radius: 14px;
+  color: rgba(255, 255, 255, 0.65);
+  text-decoration: none;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.sidebar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.sidebar-label {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.sidebar-item:hover {
+  color: #fff;
+}
+
+.sidebar-item:hover .sidebar-icon {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-item.is-active {
+  color: #fff;
+}
+
+.sidebar-item.is-active .sidebar-icon {
+  background-color: var(--bs-primary);
+  border-color: transparent;
+  color: #fff;
 }
 
 @media (max-width: 767.98px) {
