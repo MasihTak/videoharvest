@@ -123,7 +123,7 @@ export const useDownloadsStore = defineStore("downloads", () => {
       "UPDATE downloads SET status = 'failed' WHERE status IN ('downloading', 'pending')",
     );
     const rows = await db.select(
-      "SELECT id, url, title, status, location, format, progress, selector FROM downloads ORDER BY id DESC",
+      "SELECT id, url, title, status, location, format, progress, selector FROM downloads ORDER BY id ASC",
     );
     items.value = rows.map((r) => ({
       id: `db-${r.id}`,

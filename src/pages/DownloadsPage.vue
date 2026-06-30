@@ -1,10 +1,14 @@
 <script setup>
+import { computed } from "vue";
 import { storeToRefs } from "pinia";
 import { useDownloadsStore } from "@/stores/downloads.js";
 import { humanSize } from "@/utils/formats.js";
 
 const store = useDownloadsStore();
 const { items } = storeToRefs(store);
+
+// Newest on top; store keeps oldest-first to preserve FIFO queue order.
+const orderedItems = computed(() => [...items.value].reverse());
 
 const STATUS_CLASS = {
   pending: "text-bg-secondary",
@@ -40,7 +44,7 @@ function eta(seconds) {
       tag="div"
     >
       <div
-        v-for="item in items"
+        v-for="item in orderedItems"
         :key="item.id"
         class="card mb-3"
       >
