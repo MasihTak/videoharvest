@@ -1,24 +1,20 @@
 <script setup>
-import { ref } from "vue";
 import UrlInput from "@/components/UrlInput.vue";
 import VideoPreview from "@/components/VideoPreview.vue";
 import { fetchMetadata } from "@/services/metadata.js";
-
-const loading = ref(false);
-const error = ref("");
-const preview = ref(null);
+import { previewState } from "@/stores/preview.js";
 
 async function handleSubmit(url) {
   if (!url) return;
-  loading.value = true;
-  error.value = "";
-  preview.value = null;
+  previewState.loading = true;
+  previewState.error = "";
+  previewState.data = null;
   try {
-    preview.value = await fetchMetadata(url);
+    previewState.data = await fetchMetadata(url);
   } catch (e) {
-    error.value = e.message;
+    previewState.error = e.message;
   } finally {
-    loading.value = false;
+    previewState.loading = false;
   }
 }
 </script>
@@ -38,7 +34,7 @@ async function handleSubmit(url) {
 
     <!-- Skeleton loading state — mirrors VideoPreview layout -->
     <div
-      v-if="loading"
+      v-if="previewState.loading"
       class="card overflow-hidden mt-4"
       aria-busy="true"
       aria-label="Fetching video details"
@@ -64,24 +60,24 @@ async function handleSubmit(url) {
 
     <Transition name="fade-up">
       <div
-        v-if="error"
+        v-if="previewState.error"
         class="alert alert-danger mt-4"
         role="alert"
       >
-        {{ error }}
+        {{ previewState.error }}
       </div>
     </Transition>
 
     <Transition name="fade-up">
       <VideoPreview
-        v-if="preview"
-        :data="preview"
+        v-if="previewState.data"
+        :data="previewState.data"
         class="mt-4"
       />
     </Transition>
 
     <div
-      v-if="!loading && !error && !preview"
+      v-if="!previewState.loading && !previewState.error && !previewState.data"
       class="dashboard-empty text-center text-muted mt-5 py-3"
     >
       <svg
