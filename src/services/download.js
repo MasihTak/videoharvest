@@ -52,3 +52,24 @@ export function parseProgress(line) {
 export function parseFilepath(line) {
   return line.startsWith(FILE_PREFIX) ? line.slice(FILE_PREFIX.length) : null;
 }
+
+// yt-dlp fatal errors are cryptic. Map the common ones to a plain message and a
+// retryable flag so the UI can show "why" and only offer Retry when it helps.
+const ERROR_RULES = [
+  [/private video|sign in if you|join this channel|members-only/i, "This video is private or members-only.", false],
+  [/video unavailable|has been removed|been terminated|account associated|no longer available|removed by the user|video does not exist/i, "This video is unavailable or has been removed.", false],
+  [/not available in your (country|region)|geo|blocked it in your country/i, "Not available in your region.", false],
+  [/age.?restricted|confirm your age|inappropriate for some users/i, "Age-restricted — sign-in required.", false],
+  [/unsupported url|no video formats found|requested format is not available/i, "This URL or format isn't supported.", false],
+  [/requested format is not available|format is not available/i, "That quality isn't available — pick another format.", false],
+  [/http error 4\d\d|forbidden/i, "The server refused the download — try again or pick another format.", true],
+  [/unable to download|urlopen error|getaddrinfo|timed out|timeout|connection (reset|refused|aborted)|network is unreachable|temporary failure in name resolution|ssl|http error 5\d\d|read error/i, "Network error — check your connection and retry.", true],
+];
+
+export function classifyError(raw) {
+  const text = (raw || "").trim();
+  for (const [test, message, retryable] of ERROR_RULES) {
+    if (test.test(text)) return { message, retryable };
+  }
+  return { message: text || "Download failed.", retryable: true };
+}
