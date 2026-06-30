@@ -67,14 +67,15 @@ function eta(seconds) {
 
           <div
             v-if="item.status === 'downloading'"
-            class="progress mb-2"
+            class="dl-progress mb-2"
             role="progressbar"
             :aria-valuenow="Math.round(item.progress)"
             aria-valuemin="0"
             aria-valuemax="100"
+            :aria-label="`${Math.round(item.progress)}% downloaded`"
           >
             <div
-              class="progress-bar"
+              class="dl-progress-bar"
               :style="{ transform: `scaleX(${item.progress / 100})` }"
             />
           </div>
@@ -141,10 +142,21 @@ function eta(seconds) {
   min-width: 0;
 }
 
-.progress-bar {
+.dl-progress {
+  height: 5px;
+  background: var(--bs-secondary-bg);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.dl-progress-bar {
   width: 100%;
+  height: 100%;
+  background: var(--vh-primary);
   transform-origin: left center;
-  transition: transform 0.3s linear;
+  transform: scaleX(0);
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  border-radius: 999px;
 }
 
 .dl-item-enter-active {
@@ -166,6 +178,6 @@ function eta(seconds) {
   .dl-item-enter-active { transition: opacity 150ms ease; }
   .dl-item-enter-from { transform: none; }
   .dl-item-move { transition: none; }
-  .progress-bar { transition: none; }
+  .dl-progress-bar { transition: none; }
 }
 </style>
