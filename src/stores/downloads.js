@@ -143,11 +143,14 @@ export const useDownloadsStore = defineStore("downloads", () => {
     }));
   }
 
-  onOutput((payload) => {
+  const unlistenOutput = onOutput((payload) => {
     const item = find(payload.id);
     if (!item) return;
-    if (payload.kind === "stderr") {
-      noteError(item, payload.line);
+    const p = parseProgress(payload.line);
+    if (p) {
+      if (p.percent != null) item.progress = p.percent;
+      item.speed = p.speed;
+      item.eta = p.eta;
       return;
     }
     const file = parseFilepath(payload.line);
@@ -155,15 +158,12 @@ export const useDownloadsStore = defineStore("downloads", () => {
       item.location = file;
       return;
     }
-    const p = parseProgress(payload.line);
-    if (p) {
-      if (p.percent != null) item.progress = p.percent;
-      item.speed = p.speed;
-      item.eta = p.eta;
+    if (payload.kind === "stderr") {
+      noteError(item, payload.line);
     }
   });
 
-  onDone(async (payload) => {
+  const unlistenDone = onDone(async (payload) => {
     const item = find(payload.id);
     if (!item || item.status !== "downloading") return;
     if (payload.code === 0) {
@@ -177,6 +177,13 @@ export const useDownloadsStore = defineStore("downloads", () => {
     }
     pump();
   });
+
+  if (import.meta.hot) {
+    import.meta.hot.dispose(async () => {
+      (await unlistenOutput)();
+      (await unlistenDone)();
+    });
+  }
 
   return { items, enqueue, cancel, remove, retry, load };
 });

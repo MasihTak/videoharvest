@@ -1,14 +1,8 @@
 // yt-dlp download arg building + progress parsing (pure, no Tauri imports).
-// Progress is emitted by yt-dlp via --progress-template lines prefixed "VHP|";
-// the final saved path via --print "after_move:VHF|...".
+// Progress is parsed from yt-dlp's default stderr output format.
+// The final saved path comes via --print "after_move:VHF|...".
 
-const PROGRESS_PREFIX = "VHP|";
 const FILE_PREFIX = "VHF|";
-
-const PROGRESS_TEMPLATE =
-  PROGRESS_PREFIX +
-  "%(progress.status)s|%(progress.downloaded_bytes)s|%(progress.total_bytes)s|" +
-  "%(progress.total_bytes_estimate)s|%(progress.speed)s|%(progress.eta)s";
 
 export function buildArgs({ selector, dir, url }) {
   return [
@@ -19,33 +13,45 @@ export function buildArgs({ selector, dir, url }) {
     "-f",
     selector,
     "--newline",
+    "--progress",
     "--no-warnings",
-    "--progress-template",
-    PROGRESS_TEMPLATE,
     "--print",
     `after_move:${FILE_PREFIX}%(filepath)s`,
     url,
   ];
 }
 
-const num = (s) => (s && s !== "NA" ? Number(s) : null);
+// Parse "1.05MiB" -> bytes. Handles KiB, MiB, GiB, TiB, B.
+const SIZE_UNITS = { B: 1, K: 1024, M: 1024 ** 2, G: 1024 ** 3, T: 1024 ** 4 };
+
+function parseHumanSize(str) {
+  if (!str) return null;
+  const m = str.match(/^([\d.]+)\s*([BKMGT]?)i?B$/i);
+  if (!m) return null;
+  return parseFloat(m[1]) * (SIZE_UNITS[(m[2] || "B").toUpperCase()] ?? 1);
+}
+
+// Parse "MM:SS" or "HH:MM:SS" -> seconds.
+function parseHumanEta(str) {
+  if (!str) return null;
+  const parts = str.split(":").map(Number);
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  return null;
+}
+
+// Match: [download]  50.0% of 100.00MiB at  1.05MiB/s ETA 00:41
+const PROGRESS_RE =
+  /^\[download\]\s+([\d.]+)%(?:\s+of\s+[\d.]+\S+)?(?:\s+at\s+([\d.]+\s*[BKMGT]?i?B)\/s)?(?:\s+ETA\s+([\d:]+))?/i;
 
 export function parseProgress(line) {
-  if (!line.startsWith(PROGRESS_PREFIX)) return null;
-  const [status, downloaded, total, estimate, speed, eta] = line
-    .slice(PROGRESS_PREFIX.length)
-    .split("|");
-  const totalBytes = num(total) ?? num(estimate);
-  const downloadedBytes = num(downloaded);
-  const percent =
-    totalBytes && downloadedBytes != null ? (downloadedBytes / totalBytes) * 100 : null;
+  const m = line.match(PROGRESS_RE);
+  if (!m) return null;
+  const percent = parseFloat(m[1]);
   return {
-    status,
-    downloaded: downloadedBytes,
-    total: totalBytes,
-    speed: num(speed),
-    eta: num(eta),
-    percent,
+    percent: Number.isNaN(percent) ? null : percent,
+    speed: parseHumanSize(m[2]),
+    eta: parseHumanEta(m[3]),
   };
 }
 
