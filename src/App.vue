@@ -10,6 +10,7 @@ import {
 } from "@/services/binaries.js";
 import { getSetting } from "@/services/settings.js";
 import { notify } from "@/services/notifications.js";
+import { useDownloadsStore } from "@/stores/downloads.js";
 
 const ready = ref(null); // null = checking, true/false = known
 
@@ -34,6 +35,7 @@ async function onReady() {
 }
 
 onMounted(async () => {
+  useDownloadsStore().load();
   ready.value = await binariesReady();
   if (ready.value) checkForUpdate();
 });

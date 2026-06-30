@@ -5,7 +5,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { downloadDir } from "@tauri-apps/api/path";
 import { runYtdlp, cancelProcess, onOutput, onDone } from "@/services/sidecar.js";
-import { buildArgs, parseProgress, parseFilepath } from "@/services/download.js";
+import { buildArgs, parseProgress, parseFilepath, classifyError } from "@/services/download.js";
 import { getDb } from "@/services/db.js";
 import { getSetting } from "@/services/settings.js";
 import { writeLog } from "@/services/logs.js";
@@ -17,6 +17,7 @@ async function effectiveDir() {
 
 export const useDownloadsStore = defineStore("downloads", () => {
   const items = ref([]);
+  let loaded = false;
 
   const find = (id) => items.value.find((it) => it.id === id);
   const active = () => items.value.find((it) => it.status === "downloading");
@@ -30,11 +31,15 @@ export const useDownloadsStore = defineStore("downloads", () => {
     );
   }
 
+  function noteError(item, line) {
+    if (line.startsWith("ERROR:")) item.errorRaw = line.slice("ERROR:".length).trim();
+  }
+
   async function enqueue({ url, title, selector, format }) {
     const db = await getDb();
     const res = await db.execute(
-      "INSERT INTO downloads (url, title, status, format) VALUES ($1, $2, 'pending', $3)",
-      [url, title, format],
+      "INSERT INTO downloads (url, title, status, format, selector) VALUES ($1, $2, 'pending', $3, $4)",
+      [url, title, format, selector],
     );
     items.value.push({
       id: `dl-${Date.now()}-${res.lastInsertId}`,
@@ -48,12 +53,17 @@ export const useDownloadsStore = defineStore("downloads", () => {
       speed: null,
       eta: null,
       location: null,
+      error: null,
+      errorRaw: null,
+      retryable: true,
     });
     pump();
   }
 
   async function start(item) {
     item.status = "downloading";
+    item.error = null;
+    item.errorRaw = null;
     try {
       const dir = await effectiveDir();
       await runYtdlp(item.id, buildArgs({ selector: item.selector, dir, url: item.url }));
@@ -69,8 +79,12 @@ export const useDownloadsStore = defineStore("downloads", () => {
   }
 
   async function fail(item, msg) {
+    const raw = item.errorRaw || msg;
+    const { message, retryable } = classifyError(raw);
+    item.error = message;
+    item.retryable = retryable;
     await setStatus(item, "failed");
-    await writeLog("ERROR", `Download failed: ${item.title || item.url} — ${msg}`);
+    await writeLog("ERROR", `Download failed: ${item.title || item.url} — ${raw}`);
     pump();
   }
 
@@ -79,6 +93,15 @@ export const useDownloadsStore = defineStore("downloads", () => {
     if (!item || item.status !== "downloading") return;
     await cancelProcess(id);
     await setStatus(item, "canceled");
+    pump();
+  }
+
+  async function retry(id) {
+    const item = find(id);
+    if (!item || !item.selector) return;
+    if (item.status !== "failed" && item.status !== "canceled") return;
+    Object.assign(item, { progress: 0, speed: null, eta: null, location: null });
+    await setStatus(item, "pending");
     pump();
   }
 
@@ -92,13 +115,15 @@ export const useDownloadsStore = defineStore("downloads", () => {
   }
 
   async function load() {
+    if (loaded) return;
+    loaded = true;
     const db = await getDb();
     // Anything left mid-flight when the app last closed can't be resumed.
     await db.execute(
       "UPDATE downloads SET status = 'failed' WHERE status IN ('downloading', 'pending')",
     );
     const rows = await db.select(
-      "SELECT id, url, title, status, location, format, progress FROM downloads ORDER BY id DESC",
+      "SELECT id, url, title, status, location, format, progress, selector FROM downloads ORDER BY id DESC",
     );
     items.value = rows.map((r) => ({
       id: `db-${r.id}`,
@@ -106,18 +131,25 @@ export const useDownloadsStore = defineStore("downloads", () => {
       url: r.url,
       title: r.title,
       format: r.format,
-      selector: null,
+      selector: r.selector,
       status: r.status,
       progress: r.progress ?? 0,
       speed: null,
       eta: null,
       location: r.location,
+      error: null,
+      errorRaw: null,
+      retryable: true,
     }));
   }
 
   onOutput((payload) => {
     const item = find(payload.id);
     if (!item) return;
+    if (payload.kind === "stderr") {
+      noteError(item, payload.line);
+      return;
+    }
     const file = parseFilepath(payload.line);
     if (file) {
       item.location = file;
@@ -146,5 +178,5 @@ export const useDownloadsStore = defineStore("downloads", () => {
     pump();
   });
 
-  return { items, enqueue, cancel, remove, load };
+  return { items, enqueue, cancel, remove, retry, load };
 });

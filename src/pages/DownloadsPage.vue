@@ -1,5 +1,4 @@
 <script setup>
-import { onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import { useDownloadsStore } from "@/stores/downloads.js";
 import { humanSize } from "@/utils/formats.js";
@@ -21,8 +20,6 @@ function eta(seconds) {
   const s = Math.floor(seconds % 60);
   return `${m}:${String(s).padStart(2, "0")}`;
 }
-
-onMounted(() => store.load());
 </script>
 
 <template>
@@ -82,6 +79,13 @@ onMounted(() => store.load());
             />
           </div>
 
+          <p
+            v-if="item.status === 'failed' && item.error"
+            class="text-danger small mb-2 text-break"
+          >
+            {{ item.error }}
+          </p>
+
           <div class="d-flex justify-content-between align-items-center">
             <span class="text-muted small">
               <template v-if="item.status === 'downloading'">
@@ -94,22 +98,37 @@ onMounted(() => store.load());
               </template>
             </span>
 
-            <button
-              v-if="item.status === 'downloading'"
-              type="button"
-              class="btn btn-sm btn-outline-danger"
-              @click="store.cancel(item.id)"
-            >
-              Cancel
-            </button>
-            <button
-              v-else
-              type="button"
-              class="btn btn-sm btn-outline-secondary"
-              @click="store.remove(item.id)"
-            >
-              Remove
-            </button>
+            <div class="d-flex gap-2">
+              <button
+                v-if="item.status === 'downloading'"
+                type="button"
+                class="btn btn-sm btn-outline-danger"
+                @click="store.cancel(item.id)"
+              >
+                Cancel
+              </button>
+              <template v-else>
+                <button
+                  v-if="
+                    (item.status === 'failed' || item.status === 'canceled') &&
+                      item.selector &&
+                      item.retryable !== false
+                  "
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  @click="store.retry(item.id)"
+                >
+                  Retry
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary"
+                  @click="store.remove(item.id)"
+                >
+                  Remove
+                </button>
+              </template>
+            </div>
           </div>
         </div>
       </div>
