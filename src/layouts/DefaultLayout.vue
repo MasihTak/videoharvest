@@ -8,7 +8,7 @@ const sidebarOpen = ref(false);
 </script>
 
 <template>
-  <div class="d-flex min-vh-100">
+  <div class="d-flex vh-100 overflow-hidden">
     <Transition name="backdrop">
       <div
         v-if="sidebarOpen"
