@@ -88,11 +88,26 @@ pub fn run(
     Ok(())
 }
 
-/// Kill a running process by id. No-op if it already finished or was cancelled.
+/// Kill a running process and its children by id. No-op if already finished or cancelled.
 pub fn cancel(registry: tauri::State<'_, ProcessRegistry>, id: &str) -> Result<(), String> {
     let child = registry.0.lock().unwrap().remove(id);
-    if let Some(mut child) = child {
-        child.kill().map_err(|e| e.to_string())?;
+    if let Some(child) = child {
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            // taskkill /F /T kills the process and all its descendants (e.g. ffmpeg spawned by yt-dlp).
+            // child.kill() alone only terminates the direct process on Windows.
+            let pid = child.id();
+            let _ = std::process::Command::new("taskkill")
+                .args(["/F", "/T", "/PID", &pid.to_string()])
+                .creation_flags(0x0800_0000)
+                .output();
+        }
+        #[cfg(not(windows))]
+        {
+            let mut child = child;
+            let _ = child.kill();
+        }
     }
     Ok(())
 }
