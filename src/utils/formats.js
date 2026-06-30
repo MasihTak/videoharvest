@@ -35,6 +35,16 @@ function dedupeByHeight(videoFormats) {
   return [...best.values()].sort((a, b) => (b.height ?? 0) - (a.height ?? 0));
 }
 
+function videoSelector(f) {
+  return f.height ? `${f.format_id}/bestvideo[height<=${f.height}]` : f.format_id;
+}
+
+function fullSelector(f, hasBestAudio) {
+  if (!hasBestAudio) return f.height ? `${f.format_id}/best[height<=${f.height}]` : f.format_id;
+  if (!f.height) return `${f.format_id}+bestaudio`;
+  return `${f.format_id}+bestaudio/bestvideo[height<=${f.height}]+bestaudio/best[height<=${f.height}]`;
+}
+
 export function categorizeFormats(formats = []) {
   const audioFormats = formats
     .filter((f) => hasAudio(f) && !hasVideo(f))
@@ -49,14 +59,14 @@ export function categorizeFormats(formats = []) {
     id: f.format_id,
     label: `${f.abr ? `${Math.round(f.abr)} kbps` : "audio"} · ${f.ext}`,
     size: humanSize(pickSize(f)),
-    selector: f.format_id,
+    selector: `${f.format_id}/bestaudio`,
   }));
 
   const video = videoFormats.map((f) => ({
     id: f.format_id,
     label: resLabel(f),
     size: humanSize(pickSize(f)),
-    selector: f.format_id,
+    selector: videoSelector(f),
   }));
 
   const full = videoFormats.map((f) => {
@@ -66,7 +76,7 @@ export function categorizeFormats(formats = []) {
       id: `${f.format_id}+audio`,
       label: resLabel(f),
       size: humanSize(total),
-      selector: bestAudio ? `${f.format_id}+bestaudio` : f.format_id,
+      selector: fullSelector(f, Boolean(bestAudio)),
     };
   });
 
