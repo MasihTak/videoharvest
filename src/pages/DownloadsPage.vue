@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import { storeToRefs } from "pinia";
+import { openPath, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { useDownloadsStore } from "@/stores/downloads.js";
 import { humanSize } from "@/utils/formats.js";
 
@@ -10,13 +11,48 @@ const { items } = storeToRefs(store);
 // Newest on top; store keeps oldest-first to preserve FIFO queue order.
 const orderedItems = computed(() => [...items.value].reverse());
 
-const STATUS_CLASS = {
-  pending: "text-bg-secondary",
-  downloading: "text-bg-primary",
-  completed: "text-bg-success",
-  failed: "text-bg-danger",
-  canceled: "text-bg-warning",
+const STATUS = {
+  pending: { label: "Queued", tone: "neutral" },
+  downloading: { label: "Downloading", tone: "active" },
+  completed: { label: "Completed", tone: "success" },
+  failed: { label: "Failed", tone: "danger" },
+  canceled: { label: "Canceled", tone: "muted" },
 };
+
+const summary = computed(() => {
+  const counts = items.value.reduce((acc, it) => {
+    acc[it.status] = (acc[it.status] ?? 0) + 1;
+    return acc;
+  }, {});
+  const parts = [];
+  if (counts.downloading) parts.push(`${counts.downloading} downloading`);
+  if (counts.pending) parts.push(`${counts.pending} queued`);
+  if (counts.completed) parts.push(`${counts.completed} completed`);
+  if (counts.failed) parts.push(`${counts.failed} failed`);
+  return parts.join(" · ");
+});
+
+const completedItems = computed(() =>
+  items.value.filter((it) => it.status === "completed"),
+);
+const retryableFailed = computed(() =>
+  items.value.filter(
+    (it) => it.status === "failed" && it.selector && it.retryable !== false,
+  ),
+);
+
+// Bulk actions route through the same per-item store flow, one id at a time.
+function retryAllFailed() {
+  for (const it of retryableFailed.value) store.retry(it.id);
+}
+
+function clearCompleted() {
+  for (const it of completedItems.value) store.remove(it.id);
+}
+
+function fileName(path) {
+  return path ? path.split(/[\\/]/).pop() : "";
+}
 
 function eta(seconds) {
   if (seconds == null) return "";
@@ -24,54 +60,212 @@ function eta(seconds) {
   const s = Math.floor(seconds % 60);
   return `${m}:${String(s).padStart(2, "0")}`;
 }
+
+async function openFile(item) {
+  if (!item.location) return;
+  try {
+    await openPath(item.location);
+  } catch { /* file gone */ }
+}
+
+async function showInFolder(item) {
+  if (!item.location) return;
+  try {
+    await revealItemInDir(item.location);
+  } catch { /* file gone */ }
+}
+
+function canRetry(item) {
+  return (
+    (item.status === "failed" || item.status === "canceled") &&
+    item.selector &&
+    item.retryable !== false
+  );
+}
 </script>
 
 <template>
-  <section>
-    <h1 class="h3 mb-3">
-      Downloads
-    </h1>
+  <section class="downloads">
+    <header class="downloads-head">
+      <div>
+        <h1 class="h3 mb-1">
+          Downloads
+        </h1>
+        <p
+          v-if="summary"
+          class="text-muted small mb-0"
+        >
+          {{ summary }}
+        </p>
+      </div>
 
-    <p
+      <div
+        v-if="retryableFailed.length || completedItems.length"
+        class="downloads-actions"
+      >
+        <button
+          v-if="retryableFailed.length"
+          type="button"
+          class="dl-btn"
+          @click="retryAllFailed"
+        >
+          Retry all failed
+        </button>
+        <button
+          v-if="completedItems.length"
+          type="button"
+          class="dl-btn"
+          @click="clearCompleted"
+        >
+          Clear completed
+        </button>
+      </div>
+    </header>
+
+    <div
       v-if="!items.length"
-      class="text-muted"
+      class="downloads-empty"
     >
-      No downloads yet. Pick a format from the Dashboard to start one.
-    </p>
+      <span class="downloads-empty-icon">
+        <svg
+          viewBox="0 0 24 24"
+          width="26"
+          height="26"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 3v12m0 0 4-4m-4 4-4-4" />
+          <path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2" />
+        </svg>
+      </span>
+      <h2 class="h6 mb-1">
+        No downloads yet
+      </h2>
+      <p class="text-muted small mb-0">
+        Paste a link on the Dashboard and pick a format to start one.
+      </p>
+    </div>
 
     <TransitionGroup
+      v-else
       name="dl-item"
-      tag="div"
+      tag="ul"
+      class="dl-list"
     >
-      <div
+      <li
         v-for="item in orderedItems"
         :key="item.id"
-        class="card mb-3"
+        class="dl-row"
       >
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-            <div class="min-w-0">
-              <h2 class="h6 mb-1 text-truncate">
-                {{ item.title || item.url }}
-              </h2>
-              <span
-                v-if="item.format"
-                class="text-muted small"
-              >
-                {{ item.format }}
-              </span>
-            </div>
-            <span
-              class="badge"
-              :class="STATUS_CLASS[item.status]"
+        <span
+          class="dl-status"
+          :class="`dl-status--${STATUS[item.status].tone}`"
+          aria-hidden="true"
+        >
+          <svg
+            v-if="item.status === 'downloading'"
+            class="dl-spinner"
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M12 3a9 9 0 1 0 9 9" />
+          </svg>
+          <svg
+            v-else-if="item.status === 'completed'"
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+          <svg
+            v-else-if="item.status === 'failed'"
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="9"
+            />
+            <path d="M12 8v5m0 3h.01" />
+          </svg>
+          <svg
+            v-else-if="item.status === 'canceled'"
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="9"
+            />
+            <path d="M15 9l-6 6m0-6 6 6" />
+          </svg>
+          <svg
+            v-else
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="9"
+            />
+            <path d="M12 7v5l3 2" />
+          </svg>
+        </span>
+
+        <div class="dl-main">
+          <div class="dl-title-line">
+            <p
+              class="dl-title"
+              :title="item.title || item.url"
             >
-              {{ item.status }}
+              {{ item.title || item.url }}
+            </p>
+            <span
+              class="dl-label"
+              :class="`dl-label--${STATUS[item.status].tone}`"
+            >
+              {{ STATUS[item.status].label }}
             </span>
           </div>
 
           <div
             v-if="item.status === 'downloading'"
-            class="dl-progress mb-2"
+            class="dl-progress"
             role="progressbar"
             :aria-valuenow="Math.round(item.progress)"
             aria-valuemin="0"
@@ -85,69 +279,242 @@ function eta(seconds) {
           </div>
 
           <p
-            v-if="item.status === 'failed' && item.error"
-            class="text-danger small mb-2 text-break"
+            class="dl-meta"
+            :class="{ 'dl-meta--error': item.status === 'failed' && item.error }"
           >
-            {{ item.error }}
+            <template v-if="item.status === 'downloading'">
+              <span class="dl-meta-strong">{{ Math.round(item.progress) }}%</span>
+              <span v-if="item.speed"> · {{ humanSize(item.speed) }}/s</span>
+              <span v-if="item.eta != null"> · ETA {{ eta(item.eta) }}</span>
+            </template>
+            <template v-else-if="item.status === 'failed' && item.error">
+              <span
+                class="dl-meta-error"
+                :title="item.errorRaw || item.error"
+              >{{ item.error }}</span>
+            </template>
+            <template v-else-if="item.location">
+              <span
+                class="dl-path"
+                :title="item.location"
+              >{{ fileName(item.location) }}</span>
+            </template>
+            <template v-else-if="item.format">
+              {{ item.format }}
+            </template>
           </p>
-
-          <div class="d-flex justify-content-between align-items-center">
-            <span class="text-muted small">
-              <template v-if="item.status === 'downloading'">
-                {{ Math.round(item.progress) }}%
-                <span v-if="item.speed"> · {{ humanSize(item.speed) }}/s</span>
-                <span v-if="item.eta != null"> · ETA {{ eta(item.eta) }}</span>
-              </template>
-              <template v-else-if="item.location">
-                {{ item.location }}
-              </template>
-            </span>
-
-            <div class="d-flex gap-2">
-              <button
-                v-if="item.status === 'downloading'"
-                type="button"
-                class="btn btn-sm btn-outline-danger"
-                @click="store.cancel(item.id)"
-              >
-                Cancel
-              </button>
-              <template v-else>
-                <button
-                  v-if="
-                    (item.status === 'failed' || item.status === 'canceled') &&
-                      item.selector &&
-                      item.retryable !== false
-                  "
-                  type="button"
-                  class="btn btn-sm btn-outline-primary"
-                  @click="store.retry(item.id)"
-                >
-                  Retry
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-secondary"
-                  @click="store.remove(item.id)"
-                >
-                  Remove
-                </button>
-              </template>
-            </div>
-          </div>
         </div>
-      </div>
+
+        <div class="dl-actions">
+          <button
+            v-if="item.status === 'downloading'"
+            type="button"
+            class="dl-btn dl-btn--danger"
+            @click="store.cancel(item.id)"
+          >
+            Cancel
+          </button>
+
+          <template v-else>
+            <template v-if="item.status === 'completed' && item.location">
+              <button
+                type="button"
+                class="dl-btn dl-btn--primary"
+                @click="openFile(item)"
+              >
+                Open
+              </button>
+              <button
+                type="button"
+                class="dl-btn"
+                @click="showInFolder(item)"
+              >
+                Show in folder
+              </button>
+            </template>
+
+            <button
+              v-if="canRetry(item)"
+              type="button"
+              class="dl-btn dl-btn--primary"
+              @click="store.retry(item.id)"
+            >
+              Retry
+            </button>
+
+            <button
+              type="button"
+              class="dl-btn dl-btn--icon"
+              aria-label="Remove from list"
+              title="Remove"
+              @click="store.remove(item.id)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </template>
+        </div>
+      </li>
     </TransitionGroup>
   </section>
 </template>
 
 <style scoped>
-.min-w-0 {
+.downloads {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.downloads-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.downloads-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.4rem;
+}
+
+.dl-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-lg);
+  background: var(--bs-body-bg);
+  overflow: hidden;
+}
+
+.dl-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+}
+
+.dl-row + .dl-row {
+  border-top: 1px solid var(--bs-border-color);
+}
+
+/* Status glyph — calm neutral tile by default; color earns meaning. */
+.dl-status {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: var(--vh-muted);
+  background: var(--bs-secondary-bg);
+}
+
+.dl-status--active {
+  color: var(--vh-primary);
+  background: color-mix(in oklch, var(--vh-primary) 10%, transparent);
+}
+
+.dl-status--success {
+  color: var(--dl-success);
+  background: color-mix(in oklch, var(--dl-success) 12%, transparent);
+}
+
+.dl-status--danger {
+  color: var(--dl-danger);
+  background: color-mix(in oklch, var(--dl-danger) 14%, transparent);
+}
+
+.dl-main {
+  flex: 1;
   min-width: 0;
+}
+
+.dl-title-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.dl-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dl-label {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--vh-muted);
+}
+
+.dl-label--active {
+  color: var(--vh-primary);
+}
+
+.dl-label--success {
+  color: var(--dl-success);
+}
+
+.dl-label--danger {
+  color: var(--dl-danger);
+}
+
+.dl-meta {
+  font-size: 0.8rem;
+  color: var(--vh-muted);
+  margin: 0.3rem 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dl-meta-strong {
+  color: var(--vh-ink);
+  font-weight: 600;
+}
+
+.dl-meta-error {
+  color: var(--dl-danger);
+}
+
+/* Let a failure reason breathe: wrap up to three lines instead of clipping to
+   one. The full raw yt-dlp line stays available on hover. */
+.dl-meta--error {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.dl-path {
+  font-variant-numeric: tabular-nums;
 }
 
 .dl-progress {
   height: 5px;
+  margin: 0.55rem 0 0.1rem;
   background: var(--bs-secondary-bg);
   border-radius: 999px;
   overflow: hidden;
@@ -163,6 +530,108 @@ function eta(seconds) {
   border-radius: 999px;
 }
 
+.dl-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--vh-ink);
+  background: transparent;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  transition: background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1),
+    border-color 0.15s cubic-bezier(0.25, 1, 0.5, 1),
+    color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.dl-btn:hover {
+  background: var(--bs-secondary-bg);
+}
+
+.dl-btn:focus-visible {
+  outline: 2px solid var(--vh-primary);
+  outline-offset: 2px;
+}
+
+.dl-btn--primary {
+  color: var(--vh-primary-text);
+  background: var(--vh-primary);
+  border-color: var(--vh-primary);
+}
+
+.dl-btn--primary:hover {
+  background: color-mix(in oklch, var(--vh-primary), black 12%);
+  border-color: color-mix(in oklch, var(--vh-primary), black 12%);
+}
+
+.dl-btn--danger {
+  color: var(--vh-primary);
+  border-color: color-mix(in oklch, var(--vh-primary) 35%, transparent);
+}
+
+.dl-btn--danger:hover {
+  color: var(--vh-primary-text);
+  background: var(--vh-primary);
+  border-color: var(--vh-primary);
+}
+
+.dl-btn--icon {
+  width: 32px;
+  padding: 0;
+  color: var(--vh-muted);
+}
+
+.dl-btn--icon:hover {
+  color: var(--vh-ink);
+}
+
+.downloads-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  border: 1px dashed var(--bs-border-color);
+  border-radius: var(--bs-border-radius-lg);
+}
+
+.downloads-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 1rem;
+  border-radius: 16px;
+  color: var(--vh-muted);
+  background: var(--bs-secondary-bg);
+}
+
+.downloads {
+  --dl-success: oklch(0.52 0.13 150);
+  --dl-danger: oklch(0.52 0.13 65);
+}
+
+.dl-spinner {
+  animation: dl-spin 0.8s linear infinite;
+}
+
+@keyframes dl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .dl-item-enter-active {
   transition:
     opacity 200ms cubic-bezier(0.23, 1, 0.32, 1),
@@ -174,14 +643,40 @@ function eta(seconds) {
   transform: translateY(-6px);
 }
 
+.dl-item-leave-active {
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+  position: absolute;
+  width: 100%;
+}
+
+.dl-item-leave-to {
+  opacity: 0;
+  transform: translateX(8px);
+}
+
 .dl-item-move {
   transition: transform 250ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dl-item-enter-active { transition: opacity 150ms ease; }
-  .dl-item-enter-from { transform: none; }
-  .dl-item-move { transition: none; }
-  .dl-progress-bar { transition: none; }
+  .dl-item-enter-active,
+  .dl-item-leave-active,
+  .dl-item-move {
+    transition: opacity 150ms ease;
+  }
+
+  .dl-item-enter-from {
+    transform: none;
+  }
+
+  .dl-spinner {
+    animation-duration: 1.6s;
+  }
+
+  .dl-progress-bar {
+    transition: none;
+  }
 }
 </style>
