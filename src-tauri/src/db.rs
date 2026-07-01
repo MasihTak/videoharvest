@@ -16,5 +16,11 @@ pub fn migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/0002_downloads_selector.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 3,
+            description: "add error column to downloads so failure reasons survive restart",
+            sql: include_str!("../migrations/0003_downloads_error.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }

@@ -26,8 +26,8 @@ export const useDownloadsStore = defineStore("downloads", () => {
     Object.assign(item, { status }, extra);
     const db = await getDb();
     await db.execute(
-      "UPDATE downloads SET status = $1, progress = $2, location = $3, updated_at = datetime('now') WHERE id = $4",
-      [status, Math.round(item.progress), item.location, item.dbId],
+      "UPDATE downloads SET status = $1, progress = $2, location = $3, error = $4, updated_at = datetime('now') WHERE id = $5",
+      [status, Math.round(item.progress), item.location, item.error ?? null, item.dbId],
     );
   }
 
@@ -120,10 +120,10 @@ export const useDownloadsStore = defineStore("downloads", () => {
     const db = await getDb();
     // Anything left mid-flight when the app last closed can't be resumed.
     await db.execute(
-      "UPDATE downloads SET status = 'failed' WHERE status IN ('downloading', 'pending')",
+      "UPDATE downloads SET status = 'failed', error = 'Interrupted when the app closed — retry to resume.' WHERE status IN ('downloading', 'pending')",
     );
     const rows = await db.select(
-      "SELECT id, url, title, status, location, format, progress, selector FROM downloads ORDER BY id ASC",
+      "SELECT id, url, title, status, location, format, progress, selector, error FROM downloads ORDER BY id ASC",
     );
     items.value = rows.map((r) => ({
       id: `db-${r.id}`,
@@ -137,7 +137,7 @@ export const useDownloadsStore = defineStore("downloads", () => {
       speed: null,
       eta: null,
       location: r.location,
-      error: null,
+      error: r.error,
       errorRaw: null,
       retryable: true,
     }));
