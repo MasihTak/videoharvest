@@ -70,6 +70,7 @@ const ERROR_RULES = [
   [/requested format is not available|format is not available/i, "That quality isn't available — pick another format.", false],
   [/http error 4\d\d|forbidden/i, "The server refused the download — try again or pick another format.", true],
   [/unable to download|urlopen error|getaddrinfo|timed out|timeout|connection (reset|refused|aborted)|network is unreachable|temporary failure in name resolution|ssl|http error 5\d\d|read error/i, "Network error — check your connection and retry.", true],
+  [/^exit code \d+/i, "Download failed unexpectedly. Try again, or pick a different format.", true],
 ];
 
 export function classifyError(raw) {
