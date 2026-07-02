@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import FormatSelector from "@/components/FormatSelector.vue";
+import { pickThumbnail } from "@/utils/formats.js";
 import { useDownloadsStore } from "@/stores/downloads.js";
 
 const props = defineProps({
@@ -22,6 +23,7 @@ const platform = computed(() => {
 });
 
 const channel = computed(() => props.data.channel ?? props.data.uploader);
+const thumbnail = computed(() => pickThumbnail(props.data));
 const duration = computed(() => props.data.duration_string);
 const count = computed(() => props.data.playlist_count ?? props.data.entries?.length);
 
@@ -78,8 +80,8 @@ async function onDownload({ selector, format }) {
         <!-- Thumbnail -->
         <div class="col-md-5 thumb-col">
           <img
-            v-if="data.thumbnail"
-            :src="data.thumbnail"
+            v-if="thumbnail"
+            :src="thumbnail"
             :alt="data.title"
             class="thumb-img"
           />
@@ -111,7 +113,7 @@ async function onDownload({ selector, format }) {
 
           <!-- Bottom gradient for badge legibility -->
           <div
-            v-if="data.thumbnail"
+            v-if="thumbnail"
             class="thumb-gradient"
             aria-hidden="true"
           />

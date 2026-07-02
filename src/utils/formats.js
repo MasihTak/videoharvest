@@ -12,6 +12,14 @@ export function humanSize(bytes) {
   return `${n.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
+// yt-dlp's flat-playlist extraction never sets `thumbnail`, only the
+// `thumbnails[]` array (ascending by size) — fall back to its largest entry.
+export function pickThumbnail(data) {
+  if (data?.thumbnail) return data.thumbnail;
+  const list = data?.thumbnails;
+  return list?.length ? list[list.length - 1].url : null;
+}
+
 function pickSize(fmt) {
   return fmt.filesize ?? fmt.filesize_approx ?? null;
 }
