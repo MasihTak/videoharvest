@@ -2,6 +2,7 @@
 import UrlInput from "@/components/UrlInput.vue";
 import VideoPreview from "@/components/VideoPreview.vue";
 import { fetchMetadata } from "@/services/metadata.js";
+import { writeLog } from "@/services/logs.js";
 import { previewState } from "@/stores/preview.js";
 
 async function handleSubmit(url) {
@@ -9,10 +10,13 @@ async function handleSubmit(url) {
   previewState.loading = true;
   previewState.error = "";
   previewState.data = null;
+  await writeLog("INFO", `Fetching video info: ${url}`);
   try {
     previewState.data = await fetchMetadata(url);
+    await writeLog("SUCCESS", `Fetched: ${previewState.data.title || url}`);
   } catch (e) {
     previewState.error = e.message;
+    await writeLog("WARNING", `Fetch failed: ${url} — ${e.message}`);
   } finally {
     previewState.loading = false;
   }

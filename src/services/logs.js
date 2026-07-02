@@ -8,10 +8,15 @@ export async function writeLog(level, message) {
   await db.execute("INSERT INTO logs (level, message) VALUES ($1, $2)", [level, message]);
 }
 
-export async function getLogs(limit = 200) {
+export async function getLogs(limit = 500) {
   const db = await getDb();
   return db.select(
     "SELECT id, level, message, created_at FROM logs ORDER BY id DESC LIMIT $1",
     [limit],
   );
+}
+
+export async function clearLogs() {
+  const db = await getDb();
+  await db.execute("DELETE FROM logs");
 }

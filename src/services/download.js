@@ -14,7 +14,6 @@ export function buildArgs({ selector, dir, url }) {
     selector,
     "--newline",
     "--progress",
-    "--no-warnings",
     "--print",
     `after_move:${FILE_PREFIX}%(filepath)s`,
     url,

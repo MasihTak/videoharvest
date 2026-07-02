@@ -1,7 +1,7 @@
 // The single download-manager flow: a sequential queue over yt-dlp.
 // Owns queue state, live progress, persistence, and OS notifications.
 
-import { defineStore } from "pinia";
+import { defineStore, acceptHMRUpdate } from "pinia";
 import { ref } from "vue";
 import { downloadDir } from "@tauri-apps/api/path";
 import { runYtdlp, cancelProcess, onOutput, onDone } from "@/services/sidecar.js";
@@ -35,6 +35,20 @@ export const useDownloadsStore = defineStore("downloads", () => {
     if (line.startsWith("ERROR:")) item.errorRaw = line.slice("ERROR:".length).trim();
   }
 
+  // yt-dlp streams output faster than a single DB write; chain writes so the
+  // raw lines land in the log in the same order the process printed them.
+  let logTail = Promise.resolve();
+  function logLine(line) {
+    const text = line.trim();
+    if (!text) return;
+    const level = text.startsWith("ERROR:")
+      ? "ERROR"
+      : text.startsWith("WARNING:")
+        ? "WARNING"
+        : "INFO";
+    logTail = logTail.then(() => writeLog(level, text)).catch(() => {});
+  }
+
   async function enqueue({ url, title, selector, format }) {
     const db = await getDb();
     const res = await db.execute(
@@ -57,6 +71,7 @@ export const useDownloadsStore = defineStore("downloads", () => {
       errorRaw: null,
       retryable: true,
     });
+    await writeLog("INFO", `Queued: ${title || url}`);
     pump();
   }
 
@@ -64,6 +79,7 @@ export const useDownloadsStore = defineStore("downloads", () => {
     item.status = "downloading";
     item.error = null;
     item.errorRaw = null;
+    await writeLog("INFO", `Started download: ${item.title || item.url}`);
     try {
       const dir = await effectiveDir();
       await runYtdlp(item.id, buildArgs({ selector: item.selector, dir, url: item.url }));
@@ -161,6 +177,10 @@ export const useDownloadsStore = defineStore("downloads", () => {
     if (payload.kind === "stderr") {
       noteError(item, payload.line);
     }
+    // Everything that isn't progress spam or the filepath marker is real
+    // yt-dlp output ([youtube] extraction, Destination, Merger, warnings) —
+    // persist it so the log reads like the command line.
+    logLine(payload.line);
   });
 
   const unlistenDone = onDone(async (payload) => {
@@ -187,3 +207,7 @@ export const useDownloadsStore = defineStore("downloads", () => {
 
   return { items, enqueue, cancel, remove, retry, load };
 });
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useDownloadsStore, import.meta.hot));
+}
