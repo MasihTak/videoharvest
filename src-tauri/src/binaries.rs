@@ -37,12 +37,15 @@ struct Progress {
     total: u64,
 }
 
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
 pub fn command(program: &Path) -> Command {
     let mut cmd = Command::new(program);
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
-        cmd.creation_flags(0x0800_0000);
+        cmd.creation_flags(CREATE_NO_WINDOW);
     }
     cmd
 }
@@ -118,13 +121,7 @@ fn fetch_ffmpeg(app: &AppHandle, dir: &Path) -> Result<(), String> {
     fs::create_dir_all(&extract).map_err(|e| e.to_string())?;
 
     // System tar handles both .zip and .tar.xz (Win10 1803+ ships bsdtar).
-    let mut tar = Command::new("tar");
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        tar.creation_flags(0x0800_0000);
-    }
-    let status = tar
+    let status = command(Path::new("tar"))
         .arg("-xf")
         .arg(&archive)
         .arg("-C")

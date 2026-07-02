@@ -94,13 +94,11 @@ pub fn cancel(registry: tauri::State<'_, ProcessRegistry>, id: &str) -> Result<(
     if let Some(child) = child {
         #[cfg(windows)]
         {
-            use std::os::windows::process::CommandExt;
             // taskkill /F /T kills the process and all its descendants (e.g. ffmpeg spawned by yt-dlp).
             // child.kill() alone only terminates the direct process on Windows.
             let pid = child.id();
-            let _ = std::process::Command::new("taskkill")
+            let _ = binaries::command(Path::new("taskkill"))
                 .args(["/F", "/T", "/PID", &pid.to_string()])
-                .creation_flags(0x0800_0000)
                 .output();
         }
         #[cfg(not(windows))]
