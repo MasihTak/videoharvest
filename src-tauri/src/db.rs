@@ -22,5 +22,11 @@ pub fn migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/0003_downloads_error.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 4,
+            description: "add playlist_id and playlist_title to downloads for playlist grouping",
+            sql: include_str!("../migrations/0004_downloads_playlist.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }

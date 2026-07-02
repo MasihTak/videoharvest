@@ -49,11 +49,11 @@ export const useDownloadsStore = defineStore("downloads", () => {
     logTail = logTail.then(() => writeLog(level, text)).catch(() => {});
   }
 
-  async function enqueue({ url, title, selector, format }) {
+  async function enqueue({ url, title, selector, format, playlistId = null, playlistTitle = null }) {
     const db = await getDb();
     const res = await db.execute(
-      "INSERT INTO downloads (url, title, status, format, selector) VALUES ($1, $2, 'pending', $3, $4)",
-      [url, title, format, selector],
+      "INSERT INTO downloads (url, title, status, format, selector, playlist_id, playlist_title) VALUES ($1, $2, 'pending', $3, $4, $5, $6)",
+      [url, title, format, selector, playlistId, playlistTitle],
     );
     items.value.push({
       id: `dl-${Date.now()}-${res.lastInsertId}`,
@@ -62,6 +62,8 @@ export const useDownloadsStore = defineStore("downloads", () => {
       title,
       format,
       selector,
+      playlistId,
+      playlistTitle,
       status: "pending",
       progress: 0,
       speed: null,
@@ -73,6 +75,22 @@ export const useDownloadsStore = defineStore("downloads", () => {
     });
     await writeLog("INFO", `Queued: ${title || url}`);
     pump();
+  }
+
+  // Queue every selected playlist entry as its own download job, sharing a
+  // playlistId so DownloadsPage can roll them up into one progress bar.
+  async function enqueuePlaylist({ entries, selector, format, playlistTitle }) {
+    const playlistId = `pl-${Date.now()}`;
+    for (const entry of entries) {
+      await enqueue({
+        url: entry.url,
+        title: entry.title,
+        selector,
+        format,
+        playlistId,
+        playlistTitle,
+      });
+    }
   }
 
   async function start(item) {
@@ -139,7 +157,7 @@ export const useDownloadsStore = defineStore("downloads", () => {
       "UPDATE downloads SET status = 'failed', error = 'Interrupted when the app closed — retry to resume.' WHERE status IN ('downloading', 'pending')",
     );
     const rows = await db.select(
-      "SELECT id, url, title, status, location, format, progress, selector, error FROM downloads ORDER BY id ASC",
+      "SELECT id, url, title, status, location, format, progress, selector, error, playlist_id, playlist_title FROM downloads ORDER BY id ASC",
     );
     items.value = rows.map((r) => ({
       id: `db-${r.id}`,
@@ -148,6 +166,8 @@ export const useDownloadsStore = defineStore("downloads", () => {
       title: r.title,
       format: r.format,
       selector: r.selector,
+      playlistId: r.playlist_id,
+      playlistTitle: r.playlist_title,
       status: r.status,
       progress: r.progress ?? 0,
       speed: null,
@@ -205,7 +225,7 @@ export const useDownloadsStore = defineStore("downloads", () => {
     });
   }
 
-  return { items, enqueue, cancel, remove, retry, load };
+  return { items, enqueue, enqueuePlaylist, cancel, remove, retry, load };
 });
 
 if (import.meta.hot) {

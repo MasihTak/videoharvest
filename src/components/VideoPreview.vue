@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import FormatSelector from "@/components/FormatSelector.vue";
+import PlaylistPicker from "@/components/PlaylistPicker.vue";
 import { pickThumbnail } from "@/utils/formats.js";
 import { useDownloadsStore } from "@/stores/downloads.js";
 
@@ -272,6 +273,11 @@ async function onDownload({ selector, format }) {
         :formats="data.formats"
         class="mt-3"
         @download="onDownload"
+      />
+      <PlaylistPicker
+        v-else-if="isPlaylist && data.entries?.length"
+        :data="data"
+        class="mt-3"
       />
     </Transition>
   </div>

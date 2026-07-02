@@ -35,6 +35,28 @@ const summary = computed(() => {
 const completedItems = computed(() =>
   items.value.filter((it) => it.status === "completed"),
 );
+
+// One aggregate row per playlist batch — rolls up all its item rows, which
+// already render individually below with their own per-video progress.
+const playlistGroups = computed(() => {
+  const groups = new Map();
+  for (const it of items.value) {
+    if (!it.playlistId) continue;
+    if (!groups.has(it.playlistId)) {
+      groups.set(it.playlistId, { id: it.playlistId, title: it.playlistTitle, items: [] });
+    }
+    groups.get(it.playlistId).items.push(it);
+  }
+  return [...groups.values()]
+    .map((g) => ({
+      ...g,
+      total: g.items.length,
+      done: g.items.filter((it) => it.status === "completed").length,
+      failed: g.items.filter((it) => it.status === "failed").length,
+      percent: Math.round(g.items.reduce((sum, it) => sum + it.progress, 0) / g.items.length),
+    }))
+    .reverse();
+});
 const retryableFailed = computed(() =>
   items.value.filter(
     (it) => it.status === "failed" && it.selector && it.retryable !== false,
@@ -121,6 +143,33 @@ function canRetry(item) {
         </button>
       </div>
     </header>
+
+    <ul
+      v-if="playlistGroups.length"
+      class="playlist-groups"
+    >
+      <li
+        v-for="g in playlistGroups"
+        :key="g.id"
+        class="playlist-group"
+      >
+        <div class="playlist-group-head">
+          <span
+            class="playlist-group-title"
+            :title="g.title"
+          >{{ g.title || "Playlist" }}</span>
+          <span class="playlist-group-count">
+            {{ g.done }}/{{ g.total }} complete<template v-if="g.failed"> · {{ g.failed }} failed</template>
+          </span>
+        </div>
+        <div class="dl-progress">
+          <div
+            class="dl-progress-bar"
+            :style="{ transform: `scaleX(${g.percent / 100})` }"
+          />
+        </div>
+      </li>
+    </ul>
 
     <div
       v-if="!items.length"
@@ -388,6 +437,43 @@ function canRetry(item) {
   display: flex;
   flex-shrink: 0;
   gap: 0.4rem;
+}
+
+.playlist-groups {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.playlist-group {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-lg);
+  background: var(--bs-body-bg);
+}
+
+.playlist-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.playlist-group-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playlist-group-count {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--vh-muted);
 }
 
 .dl-list {
