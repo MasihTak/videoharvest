@@ -16,6 +16,8 @@ export default [
         process: "readonly",
         fetch: "readonly",
         localStorage: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
       },
     },
     files: ["**/*.{js,vue}"],
