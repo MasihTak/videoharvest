@@ -2,6 +2,7 @@
 import { onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import { useSchedulerStore } from "@/stores/scheduler.js";
+import { formatCountdown } from "@/services/scheduler.js";
 
 const scheduler = useSchedulerStore();
 const { items } = storeToRefs(scheduler);
@@ -80,6 +81,9 @@ onMounted(() => scheduler.load());
           </p>
           <p class="sched-meta">
             Runs {{ formatRun(s.next_run) }}
+            <template v-if="s.next_run">
+              · {{ formatCountdown(s.next_run) }}
+            </template>
             <template v-if="s.last_run">
               · last {{ formatRun(s.last_run) }}
             </template>

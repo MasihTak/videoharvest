@@ -31,6 +31,22 @@ export function resolveDefaultRun(defaultTime) {
   };
 }
 
+// next_run is stored as sqlite UTC ("YYYY-MM-DD HH:MM:SS", no zone).
+export function formatCountdown(nextRun) {
+  if (!nextRun) return null;
+  const diffMs = new Date(`${nextRun}Z`) - Date.now();
+  if (diffMs <= 0) return "overdue";
+
+  const totalMinutes = Math.floor(diffMs / 60_000);
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+
+  if (days > 0) return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+  if (hours > 0) return `${hours}h`;
+  return `${minutes}m`;
+}
+
 export async function listSchedules() {
   const db = await getDb();
   return db.select(
