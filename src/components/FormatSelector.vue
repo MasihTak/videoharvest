@@ -14,10 +14,13 @@ const modes = [
   { key: "audio", label: "Audio only" },
 ];
 
-const emit = defineEmits(["download"]);
+const emit = defineEmits(["download", "schedule"]);
 
 const mode = ref("full");
 const selected = ref(null);
+const scheduling = ref(false);
+const date = ref("");
+const time = ref("");
 
 const rows = computed(() => categorized.value[mode.value]);
 
@@ -32,6 +35,19 @@ function requestDownload() {
   if (selectedRow.value) {
     emit("download", { selector: selectedRow.value.selector, format: selectedRow.value.label });
   }
+}
+
+function requestSchedule() {
+  if (!selectedRow.value || !date.value || !time.value) return;
+  emit("schedule", {
+    selector: selectedRow.value.selector,
+    format: selectedRow.value.label,
+    date: date.value,
+    time: time.value,
+  });
+  scheduling.value = false;
+  date.value = "";
+  time.value = "";
 }
 </script>
 
@@ -85,14 +101,70 @@ function requestDownload() {
       No formats available for this mode.
     </p>
 
-    <button
-      type="button"
-      class="btn btn-primary w-100 mt-3"
-      :disabled="!selectedRow"
-      @click="requestDownload"
-    >
-      Download
-    </button>
+    <div class="d-flex gap-2 mt-3">
+      <button
+        type="button"
+        class="btn btn-primary flex-grow-1"
+        :disabled="!selectedRow"
+        @click="requestDownload"
+      >
+        Download now
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        :disabled="!selectedRow"
+        :aria-pressed="scheduling"
+        @click="scheduling = !scheduling"
+      >
+        Schedule
+      </button>
+    </div>
+
+    <Transition name="fade-up">
+      <form
+        v-if="scheduling"
+        class="schedule-panel mt-2 row g-2 align-items-end"
+        @submit.prevent="requestSchedule"
+      >
+        <div class="col-6 col-md-5">
+          <label
+            class="form-label small"
+            for="fmtDate"
+          >Date</label>
+          <input
+            id="fmtDate"
+            v-model="date"
+            type="date"
+            class="form-control form-control-sm"
+            required
+          />
+        </div>
+
+        <div class="col-6 col-md-4">
+          <label
+            class="form-label small"
+            for="fmtTime"
+          >Time</label>
+          <input
+            id="fmtTime"
+            v-model="time"
+            type="time"
+            class="form-control form-control-sm"
+            required
+          />
+        </div>
+
+        <div class="col-12 col-md-3">
+          <button
+            type="submit"
+            class="btn btn-sm btn-primary w-100"
+          >
+            Confirm
+          </button>
+        </div>
+      </form>
+    </Transition>
   </div>
 </template>
 
@@ -204,6 +276,33 @@ function requestDownload() {
   .mode-tab,
   .format-row {
     transition: none;
+  }
+}
+
+/* Inline schedule panel */
+.schedule-panel {
+  padding: 0.75rem;
+  background: var(--bs-secondary-bg);
+  border-radius: var(--bs-border-radius);
+}
+
+.fade-up-enter-active {
+  transition:
+    opacity 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.fade-up-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up-enter-active {
+    transition: opacity 150ms ease;
+  }
+  .fade-up-enter-from {
+    transform: none;
   }
 }
 </style>

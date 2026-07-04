@@ -5,12 +5,15 @@ import FormatSelector from "@/components/FormatSelector.vue";
 import PlaylistPicker from "@/components/PlaylistPicker.vue";
 import { pickThumbnail } from "@/utils/formats.js";
 import { useDownloadsStore } from "@/stores/downloads.js";
+import { useSchedulerStore } from "@/stores/scheduler.js";
+import { nextRunOnce } from "@/services/scheduler.js";
 
 const props = defineProps({
   data: { type: Object, required: true },
 });
 
 const downloads = useDownloadsStore();
+const scheduler = useSchedulerStore();
 const router = useRouter();
 
 const isPlaylist = computed(() => props.data._type === "playlist");
@@ -71,6 +74,18 @@ async function onDownload({ selector, format }) {
     format,
   });
   router.push("/downloads");
+}
+
+async function onSchedule({ selector, format, date, time }) {
+  const downloadId = await downloads.enqueue({
+    url: props.data.webpage_url ?? props.data.original_url,
+    title: props.data.title,
+    selector,
+    format,
+    autostart: false,
+  });
+  await scheduler.create({ downloadId, nextRun: nextRunOnce(date, time) });
+  router.push("/scheduler");
 }
 </script>
 
@@ -273,6 +288,7 @@ async function onDownload({ selector, format }) {
         :formats="data.formats"
         class="mt-3"
         @download="onDownload"
+        @schedule="onSchedule"
       />
       <PlaylistPicker
         v-else-if="isPlaylist && data.entries?.length"

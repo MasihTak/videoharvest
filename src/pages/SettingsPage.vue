@@ -12,6 +12,8 @@ const checkOnLaunch = ref(true);
 const updating = ref(false);
 const message = ref("");
 const downloadFolder = ref("");
+const schedulerEnabled = ref(true);
+const schedulerRetryFailed = ref(false);
 
 async function chooseFolder() {
   const picked = await open({ directory: true, defaultPath: downloadFolder.value });
@@ -49,10 +51,20 @@ async function onToggleCheck() {
   await setSetting("check_on_launch", checkOnLaunch.value ? "1" : "0");
 }
 
+async function onToggleScheduler() {
+  await setSetting("scheduler_enabled", schedulerEnabled.value ? "1" : "0");
+}
+
+async function onToggleSchedulerRetry() {
+  await setSetting("scheduler_retry_failed", schedulerRetryFailed.value ? "1" : "0");
+}
+
 onMounted(async () => {
   loadVersion();
   checkOnLaunch.value = (await getSetting("check_on_launch", "1")) === "1";
   downloadFolder.value = (await getSetting("download_dir")) ?? (await downloadDir());
+  schedulerEnabled.value = (await getSetting("scheduler_enabled", "1")) === "1";
+  schedulerRetryFailed.value = (await getSetting("scheduler_retry_failed", "0")) === "1";
 });
 </script>
 
@@ -123,6 +135,46 @@ onMounted(async () => {
           v-if="message"
           class="bg-body-secondary p-3 rounded small mb-0"
         >{{ message }}</pre>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-body">
+        <h2 class="h5 card-title">
+          Scheduler
+        </h2>
+
+        <div class="form-check form-switch mb-3">
+          <input
+            id="schedulerEnabled"
+            v-model="schedulerEnabled"
+            class="form-check-input"
+            type="checkbox"
+            @change="onToggleScheduler"
+          />
+          <label
+            class="form-check-label"
+            for="schedulerEnabled"
+          >
+            Enable scheduler
+          </label>
+        </div>
+
+        <div class="form-check form-switch mb-0">
+          <input
+            id="schedulerRetryFailed"
+            v-model="schedulerRetryFailed"
+            class="form-check-input"
+            type="checkbox"
+            @change="onToggleSchedulerRetry"
+          />
+          <label
+            class="form-check-label"
+            for="schedulerRetryFailed"
+          >
+            Retry failed scheduled downloads
+          </label>
+        </div>
       </div>
     </div>
   </section>

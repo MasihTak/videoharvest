@@ -49,7 +49,15 @@ export const useDownloadsStore = defineStore("downloads", () => {
     logTail = logTail.then(() => writeLog(level, text)).catch(() => {});
   }
 
-  async function enqueue({ url, title, selector, format, playlistId = null, playlistTitle = null }) {
+  async function enqueue({
+    url,
+    title,
+    selector,
+    format,
+    playlistId = null,
+    playlistTitle = null,
+    autostart = true,
+  }) {
     const db = await getDb();
     const res = await db.execute(
       "INSERT INTO downloads (url, title, status, format, selector, playlist_id, playlist_title) VALUES ($1, $2, 'pending', $3, $4, $5, $6)",
@@ -74,7 +82,8 @@ export const useDownloadsStore = defineStore("downloads", () => {
       retryable: true,
     });
     await writeLog("INFO", `Queued: ${title || url}`);
-    pump();
+    if (autostart) pump();
+    return res.lastInsertId;
   }
 
   // Queue every selected playlist entry as its own download job, sharing a
@@ -134,6 +143,16 @@ export const useDownloadsStore = defineStore("downloads", () => {
     const item = find(id);
     if (!item || !item.selector) return;
     if (item.status !== "failed" && item.status !== "canceled") return;
+    Object.assign(item, { progress: 0, speed: null, eta: null, location: null });
+    await setStatus(item, "pending");
+    pump();
+  }
+
+  // Re-queue an already-loaded download by its DB id (used by the scheduler,
+  // which only knows the DB id, not the runtime item id).
+  async function requeueByDbId(dbId) {
+    const item = items.value.find((it) => it.dbId === dbId);
+    if (!item || item.status === "downloading") return;
     Object.assign(item, { progress: 0, speed: null, eta: null, location: null });
     await setStatus(item, "pending");
     pump();
@@ -225,7 +244,7 @@ export const useDownloadsStore = defineStore("downloads", () => {
     });
   }
 
-  return { items, enqueue, enqueuePlaylist, cancel, remove, retry, load };
+  return { items, enqueue, enqueuePlaylist, cancel, remove, retry, requeueByDbId, load };
 });
 
 if (import.meta.hot) {

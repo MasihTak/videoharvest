@@ -11,6 +11,7 @@ import {
 import { getSetting } from "@/services/settings.js";
 import { notify } from "@/services/notifications.js";
 import { useDownloadsStore } from "@/stores/downloads.js";
+import { useSchedulerStore } from "@/stores/scheduler.js";
 
 const ready = ref(null); // null = checking, true/false = known
 
@@ -36,6 +37,7 @@ async function onReady() {
 
 onMounted(async () => {
   useDownloadsStore().load();
+  useSchedulerStore().startPolling();
   ready.value = await binariesReady();
   if (ready.value) checkForUpdate();
 });
