@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { categorizeFormats } from "@/utils/formats.js";
 import { getSetting } from "@/services/settings.js";
+import { resolveDefaultRun } from "@/services/scheduler.js";
 
 const props = defineProps({
   formats: { type: Array, required: true },
@@ -23,10 +24,16 @@ const scheduling = ref(false);
 const date = ref("");
 const time = ref("");
 const schedulerEnabled = ref(true);
+const defaultTime = ref("02:00");
 
 onMounted(async () => {
   schedulerEnabled.value = (await getSetting("scheduler_enabled", "1")) === "1";
+  defaultTime.value = await getSetting("scheduler_default_time", "02:00");
 });
+
+function useDefaultTime() {
+  ({ date: date.value, time: time.value } = resolveDefaultRun(defaultTime.value));
+}
 
 const rows = computed(() => categorized.value[mode.value]);
 
@@ -134,6 +141,16 @@ function requestSchedule() {
         class="schedule-panel mt-2 row g-2 align-items-end"
         @submit.prevent="requestSchedule"
       >
+        <div class="col-12">
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            @click="useDefaultTime"
+          >
+            Use default ({{ defaultTime }})
+          </button>
+        </div>
+
         <div class="col-6 col-md-5">
           <label
             class="form-label small"

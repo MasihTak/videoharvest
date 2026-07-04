@@ -16,6 +16,21 @@ export function nextRunOnce(date, time) {
   return toSqliteUtc(new Date(`${date}T${time}`));
 }
 
+// Resolves the default-time quick-schedule option to a concrete local
+// date/time: today at defaultTime if that hasn't passed yet, else tomorrow.
+export function resolveDefaultRun(defaultTime) {
+  const [hours, minutes] = defaultTime.split(":").map(Number);
+  const now = new Date();
+  const run = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+  if (run <= now) run.setDate(run.getDate() + 1);
+
+  const pad = (n) => String(n).padStart(2, "0");
+  return {
+    date: `${run.getFullYear()}-${pad(run.getMonth() + 1)}-${pad(run.getDate())}`,
+    time: `${pad(run.getHours())}:${pad(run.getMinutes())}`,
+  };
+}
+
 export async function listSchedules() {
   const db = await getDb();
   return db.select(

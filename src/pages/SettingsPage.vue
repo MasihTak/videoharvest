@@ -14,6 +14,7 @@ const message = ref("");
 const downloadFolder = ref("");
 const schedulerEnabled = ref(true);
 const schedulerRetryFailed = ref(false);
+const schedulerDefaultTime = ref("02:00");
 
 async function chooseFolder() {
   const picked = await open({ directory: true, defaultPath: downloadFolder.value });
@@ -59,12 +60,17 @@ async function onToggleSchedulerRetry() {
   await setSetting("scheduler_retry_failed", schedulerRetryFailed.value ? "1" : "0");
 }
 
+async function onChangeSchedulerDefaultTime() {
+  await setSetting("scheduler_default_time", schedulerDefaultTime.value);
+}
+
 onMounted(async () => {
   loadVersion();
   checkOnLaunch.value = (await getSetting("check_on_launch", "1")) === "1";
   downloadFolder.value = (await getSetting("download_dir")) ?? (await downloadDir());
   schedulerEnabled.value = (await getSetting("scheduler_enabled", "1")) === "1";
   schedulerRetryFailed.value = (await getSetting("scheduler_retry_failed", "0")) === "1";
+  schedulerDefaultTime.value = await getSetting("scheduler_default_time", "02:00");
 });
 </script>
 
@@ -160,7 +166,7 @@ onMounted(async () => {
           </label>
         </div>
 
-        <div class="form-check form-switch mb-0">
+        <div class="form-check form-switch mb-3">
           <input
             id="schedulerRetryFailed"
             v-model="schedulerRetryFailed"
@@ -174,6 +180,22 @@ onMounted(async () => {
           >
             Retry failed scheduled downloads
           </label>
+        </div>
+
+        <div>
+          <label
+            class="form-label small"
+            for="schedulerDefaultTime"
+          >
+            Default schedule time
+          </label>
+          <input
+            id="schedulerDefaultTime"
+            v-model="schedulerDefaultTime"
+            type="time"
+            class="form-control form-control-sm w-auto"
+            @change="onChangeSchedulerDefaultTime"
+          />
         </div>
       </div>
     </div>
