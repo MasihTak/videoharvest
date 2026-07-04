@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { categorizeFormats } from "@/utils/formats.js";
+import { getSetting } from "@/services/settings.js";
 
 const props = defineProps({
   formats: { type: Array, required: true },
@@ -21,6 +22,11 @@ const selected = ref(null);
 const scheduling = ref(false);
 const date = ref("");
 const time = ref("");
+const schedulerEnabled = ref(true);
+
+onMounted(async () => {
+  schedulerEnabled.value = (await getSetting("scheduler_enabled", "1")) === "1";
+});
 
 const rows = computed(() => categorized.value[mode.value]);
 
@@ -111,6 +117,7 @@ function requestSchedule() {
         Download now
       </button>
       <button
+        v-if="schedulerEnabled"
         type="button"
         class="btn btn-outline-secondary"
         :disabled="!selectedRow"
