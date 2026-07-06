@@ -91,7 +91,7 @@ pub fn run(
 /// Kill a running process and its children by id. No-op if already finished or cancelled.
 pub fn cancel(registry: tauri::State<'_, ProcessRegistry>, id: &str) -> Result<(), String> {
     let child = registry.0.lock().unwrap().remove(id);
-    if let Some(child) = child {
+    if let Some(mut child) = child {
         #[cfg(windows)]
         {
             // taskkill /F /T kills the process and all its descendants (e.g. ffmpeg spawned by yt-dlp).
@@ -103,9 +103,10 @@ pub fn cancel(registry: tauri::State<'_, ProcessRegistry>, id: &str) -> Result<(
         }
         #[cfg(not(windows))]
         {
-            let mut child = child;
             let _ = child.kill();
         }
+        // Reap so the OS process table entry doesn't linger as a zombie.
+        let _ = child.wait();
     }
     Ok(())
 }
