@@ -80,10 +80,14 @@ pub fn bootstrap(app: &AppHandle) -> Result<(), String> {
     let dir = bin_dir(app)?;
 
     let ytdlp = ytdlp_path(app)?;
-    download(app, YTDLP_URL, "yt-dlp", &ytdlp)?;
-    set_executable(&ytdlp)?;
+    if !ytdlp.exists() {
+        download(app, YTDLP_URL, "yt-dlp", &ytdlp)?;
+        set_executable(&ytdlp)?;
+    }
 
-    fetch_ffmpeg(app, &dir)?;
+    if !ffmpeg_path(app)?.exists() {
+        fetch_ffmpeg(app, &dir)?;
+    }
     Ok(())
 }
 
