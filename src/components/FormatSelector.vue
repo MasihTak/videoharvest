@@ -29,6 +29,11 @@ const defaultTime = ref("02:00");
 onMounted(async () => {
   schedulerEnabled.value = (await getSetting("scheduler_enabled", "1")) === "1";
   defaultTime.value = await getSetting("scheduler_default_time", "02:00");
+
+  mode.value = await getSetting("default_format", "full");
+  if ((await getSetting("default_best_quality", "0")) === "1") {
+    selected.value = rows.value[0]?.id ?? null;
+  }
 });
 
 function useDefaultTime() {

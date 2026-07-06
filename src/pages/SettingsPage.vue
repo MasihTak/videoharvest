@@ -16,6 +16,8 @@ const schedulerEnabled = ref(true);
 const schedulerRetryFailed = ref(false);
 const schedulerDefaultTime = ref("02:00");
 const notificationsEnabled = ref(true);
+const defaultFormat = ref("full");
+const defaultBestQuality = ref(false);
 
 async function chooseFolder() {
   const picked = await open({ directory: true, defaultPath: downloadFolder.value });
@@ -69,6 +71,14 @@ async function onToggleNotifications() {
   await setSetting("notifications_enabled", notificationsEnabled.value ? "1" : "0");
 }
 
+async function onChangeDefaultFormat() {
+  await setSetting("default_format", defaultFormat.value);
+}
+
+async function onToggleDefaultBestQuality() {
+  await setSetting("default_best_quality", defaultBestQuality.value ? "1" : "0");
+}
+
 onMounted(async () => {
   loadVersion();
   checkOnLaunch.value = (await getSetting("check_on_launch", "1")) === "1";
@@ -77,6 +87,8 @@ onMounted(async () => {
   schedulerRetryFailed.value = (await getSetting("scheduler_retry_failed", "0")) === "1";
   schedulerDefaultTime.value = await getSetting("scheduler_default_time", "02:00");
   notificationsEnabled.value = (await getSetting("notifications_enabled", "1")) === "1";
+  defaultFormat.value = await getSetting("default_format", "full");
+  defaultBestQuality.value = (await getSetting("default_best_quality", "0")) === "1";
 });
 </script>
 
@@ -202,6 +214,55 @@ onMounted(async () => {
             class="form-control form-control-sm w-auto"
             @change="onChangeSchedulerDefaultTime"
           />
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-body">
+        <h2 class="h5 card-title">
+          Downloads
+        </h2>
+
+        <div class="mb-3">
+          <label
+            class="form-label small"
+            for="defaultFormat"
+          >
+            Default format
+          </label>
+          <select
+            id="defaultFormat"
+            v-model="defaultFormat"
+            class="form-select form-select-sm w-auto"
+            @change="onChangeDefaultFormat"
+          >
+            <option value="full">
+              Full video
+            </option>
+            <option value="video">
+              Video only
+            </option>
+            <option value="audio">
+              Audio only
+            </option>
+          </select>
+        </div>
+
+        <div class="form-check form-switch mb-0">
+          <input
+            id="defaultBestQuality"
+            v-model="defaultBestQuality"
+            class="form-check-input"
+            type="checkbox"
+            @change="onToggleDefaultBestQuality"
+          />
+          <label
+            class="form-check-label"
+            for="defaultBestQuality"
+          >
+            Always pre-select the best available quality
+          </label>
         </div>
       </div>
     </div>
