@@ -2,8 +2,11 @@ use std::fs;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::time::Duration;
 
 use tauri::{AppHandle, Emitter, Manager};
+
+const HTTP_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[cfg(windows)]
 const EXE: &str = ".exe";
@@ -145,7 +148,11 @@ fn fetch_ffmpeg(app: &AppHandle, dir: &Path) -> Result<(), String> {
 }
 
 fn download(app: &AppHandle, url: &str, label: &str, dest: &Path) -> Result<(), String> {
-    let resp = ureq::get(url).call().map_err(|e| e.to_string())?;
+    let agent = ureq::AgentBuilder::new()
+        .timeout_connect(HTTP_TIMEOUT)
+        .timeout_read(HTTP_TIMEOUT)
+        .build();
+    let resp = agent.get(url).call().map_err(|e| e.to_string())?;
     let total: u64 = resp
         .header("Content-Length")
         .and_then(|v| v.parse().ok())
