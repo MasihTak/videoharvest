@@ -16,6 +16,7 @@ import {
 import { getSetting } from "@/services/settings.js";
 import { useDownloadsStore } from "@/stores/downloads.js";
 import { writeLog } from "@/services/logs.js";
+import { notify } from "@/services/notifications.js";
 
 const POLL_MS = 30_000;
 
@@ -60,6 +61,7 @@ export const useSchedulerStore = defineStore("scheduler", () => {
     for (const schedule of due) {
       await downloads.requeueByDbId(schedule.download_id);
       await writeLog("INFO", `Scheduled download started (schedule #${schedule.id})`);
+      await notify("Scheduled download started", `Schedule #${schedule.id}`);
       await touchSchedule(schedule.id, { nextRun: null, lastRun: nowIso, status: "completed" });
     }
     await load();

@@ -128,6 +128,7 @@ export const useDownloadsStore = defineStore("downloads", () => {
     item.retryable = retryable;
     await setStatus(item, "failed");
     await writeLog("ERROR", `Download failed: ${item.title || item.url} — ${raw}`);
+    await notify("Download failed", item.title || item.url);
     pump();
   }
 
