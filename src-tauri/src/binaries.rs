@@ -141,9 +141,14 @@ fn fetch_ffmpeg(app: &AppHandle, dir: &Path) -> Result<(), String> {
 
     let found =
         find_file(&extract, &format!("ffmpeg{EXE}")).ok_or("ffmpeg binary not found in archive")?;
+    // Stage the new binary before touching dest, so a failed rename never leaves
+    // ffmpeg missing entirely.
     let dest = ffmpeg_path(app)?;
+    let staged = dest.with_extension("new");
+    let _ = fs::remove_file(&staged);
+    fs::rename(&found, &staged).map_err(|e| e.to_string())?;
     let _ = fs::remove_file(&dest);
-    fs::rename(&found, &dest).map_err(|e| e.to_string())?;
+    fs::rename(&staged, &dest).map_err(|e| e.to_string())?;
     set_executable(&dest)?;
 
     let _ = fs::remove_file(&archive);
