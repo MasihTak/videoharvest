@@ -15,6 +15,7 @@ const downloadFolder = ref("");
 const schedulerEnabled = ref(true);
 const schedulerRetryFailed = ref(false);
 const schedulerDefaultTime = ref("02:00");
+const notificationsEnabled = ref(true);
 
 async function chooseFolder() {
   const picked = await open({ directory: true, defaultPath: downloadFolder.value });
@@ -64,6 +65,10 @@ async function onChangeSchedulerDefaultTime() {
   await setSetting("scheduler_default_time", schedulerDefaultTime.value);
 }
 
+async function onToggleNotifications() {
+  await setSetting("notifications_enabled", notificationsEnabled.value ? "1" : "0");
+}
+
 onMounted(async () => {
   loadVersion();
   checkOnLaunch.value = (await getSetting("check_on_launch", "1")) === "1";
@@ -71,6 +76,7 @@ onMounted(async () => {
   schedulerEnabled.value = (await getSetting("scheduler_enabled", "1")) === "1";
   schedulerRetryFailed.value = (await getSetting("scheduler_retry_failed", "0")) === "1";
   schedulerDefaultTime.value = await getSetting("scheduler_default_time", "02:00");
+  notificationsEnabled.value = (await getSetting("notifications_enabled", "1")) === "1";
 });
 </script>
 
@@ -196,6 +202,30 @@ onMounted(async () => {
             class="form-control form-control-sm w-auto"
             @change="onChangeSchedulerDefaultTime"
           />
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-body">
+        <h2 class="h5 card-title">
+          Notifications
+        </h2>
+
+        <div class="form-check form-switch mb-0">
+          <input
+            id="notificationsEnabled"
+            v-model="notificationsEnabled"
+            class="form-check-input"
+            type="checkbox"
+            @change="onToggleNotifications"
+          />
+          <label
+            class="form-check-label"
+            for="notificationsEnabled"
+          >
+            Notify on download completed, failed, and scheduled start
+          </label>
         </div>
       </div>
     </div>
