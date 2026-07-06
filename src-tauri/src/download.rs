@@ -12,6 +12,11 @@ use crate::binaries;
 #[derive(Default)]
 pub struct ProcessRegistry(pub Mutex<HashMap<String, Child>>);
 
+/// Recover from mutex poisoning instead of panicking every call after the first panic.
+fn lock(m: &Mutex<HashMap<String, Child>>) -> std::sync::MutexGuard<'_, HashMap<String, Child>> {
+    m.lock().unwrap_or_else(|e| e.into_inner())
+}
+
 #[derive(Clone, serde::Serialize)]
 struct OutputPayload {
     id: String,
@@ -41,7 +46,7 @@ pub fn run(
 
     let stdout = child.stdout.take().ok_or("no stdout handle")?;
     let stderr = child.stderr.take().ok_or("no stderr handle")?;
-    registry.0.lock().unwrap().insert(id.clone(), child);
+    lock(&registry.0).insert(id.clone(), child);
 
     let stderr_thread = {
         let app = app.clone();
@@ -74,11 +79,7 @@ pub fn run(
         // Drain stderr fully before signalling done, so consumers (e.g. the
         // metadata fetch) see the error text before the done event.
         let _ = stderr_thread.join();
-        let code = app
-            .state::<ProcessRegistry>()
-            .0
-            .lock()
-            .unwrap()
+        let code = lock(&app.state::<ProcessRegistry>().0)
             .remove(&id)
             .and_then(|mut child| child.wait().ok())
             .and_then(|status| status.code());
@@ -90,7 +91,7 @@ pub fn run(
 
 /// Kill a running process and its children by id. No-op if already finished or cancelled.
 pub fn cancel(registry: tauri::State<'_, ProcessRegistry>, id: &str) -> Result<(), String> {
-    let child = registry.0.lock().unwrap().remove(id);
+    let child = lock(&registry.0).remove(id);
     if let Some(mut child) = child {
         #[cfg(windows)]
         {
