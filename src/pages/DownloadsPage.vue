@@ -11,12 +11,14 @@ const { items } = storeToRefs(store);
 // Newest on top; store keeps oldest-first to preserve FIFO queue order.
 const orderedItems = computed(() => [...items.value].reverse());
 
+// Every status icon shares the same 20x20/stroke-2 svg shell — only the
+// circle-outline presence and inner path(s) vary per status.
 const STATUS = {
-  pending: { label: "Queued", tone: "neutral" },
-  downloading: { label: "Downloading", tone: "active" },
-  completed: { label: "Completed", tone: "success" },
-  failed: { label: "Failed", tone: "danger" },
-  canceled: { label: "Canceled", tone: "muted" },
+  pending: { label: "Queued", tone: "neutral", circle: true, paths: ["M12 7v5l3 2"] },
+  downloading: { label: "Downloading", tone: "active", spin: true, paths: ["M12 3a9 9 0 1 0 9 9"] },
+  completed: { label: "Completed", tone: "success", paths: ["M20 6 9 17l-5-5"] },
+  failed: { label: "Failed", tone: "danger", circle: true, paths: ["M12 8v5m0 3h.01"] },
+  canceled: { label: "Canceled", tone: "muted", circle: true, paths: ["M15 9l-6 6m0-6 6 6"] },
 };
 
 const summary = computed(() => {
@@ -215,33 +217,7 @@ function canRetry(item) {
           aria-hidden="true"
         >
           <svg
-            v-if="item.status === 'downloading'"
-            class="dl-spinner"
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-          >
-            <path d="M12 3a9 9 0 1 0 9 9" />
-          </svg>
-          <svg
-            v-else-if="item.status === 'completed'"
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M20 6 9 17l-5-5" />
-          </svg>
-          <svg
-            v-else-if="item.status === 'failed'"
+            :class="{ 'dl-spinner': STATUS[item.status].spin }"
             viewBox="0 0 24 24"
             width="20"
             height="20"
@@ -252,47 +228,16 @@ function canRetry(item) {
             stroke-linejoin="round"
           >
             <circle
+              v-if="STATUS[item.status].circle"
               cx="12"
               cy="12"
               r="9"
             />
-            <path d="M12 8v5m0 3h.01" />
-          </svg>
-          <svg
-            v-else-if="item.status === 'canceled'"
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle
-              cx="12"
-              cy="12"
-              r="9"
+            <path
+              v-for="d in STATUS[item.status].paths"
+              :key="d"
+              :d="d"
             />
-            <path d="M15 9l-6 6m0-6 6 6" />
-          </svg>
-          <svg
-            v-else
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle
-              cx="12"
-              cy="12"
-              r="9"
-            />
-            <path d="M12 7v5l3 2" />
           </svg>
         </span>
 
