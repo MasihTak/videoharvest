@@ -34,9 +34,9 @@ onMounted(() => scheduler.load());
 
     <div
       v-if="!items.length"
-      class="scheduler-empty"
+      class="empty-state"
     >
-      <span class="scheduler-empty-icon">
+      <span class="empty-state-icon">
         <svg
           viewBox="0 0 24 24"
           width="26"
@@ -101,7 +101,7 @@ onMounted(() => scheduler.load());
           <button
             v-if="s.status !== 'completed'"
             type="button"
-            class="sched-btn"
+            class="btn-chip"
             @click="scheduler.toggle(s)"
           >
             {{ s.status === "disabled" ? "Enable" : "Disable" }}
@@ -109,7 +109,7 @@ onMounted(() => scheduler.load());
 
           <button
             type="button"
-            class="sched-btn sched-btn--icon"
+            class="btn-chip btn-chip--icon"
             aria-label="Remove schedule"
             title="Remove"
             @click="scheduler.remove(s.id)"
@@ -200,56 +200,5 @@ onMounted(() => scheduler.load());
 
 .sched-label--success {
   color: var(--dl-success, oklch(0.52 0.13 150));
-}
-
-.sched-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-  padding: 0 0.7rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--vh-ink);
-  background: transparent;
-  border: 1px solid var(--bs-border-color);
-  border-radius: var(--bs-border-radius);
-  transition: background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.sched-btn:hover {
-  background: var(--bs-secondary-bg);
-}
-
-.sched-btn--icon {
-  width: 32px;
-  padding: 0;
-  color: var(--vh-muted);
-}
-
-.sched-btn--icon:hover {
-  color: var(--vh-ink);
-}
-
-.scheduler-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 3.5rem 1.5rem;
-  border: 1px dashed var(--bs-border-color);
-  border-radius: var(--bs-border-radius-lg);
-}
-
-.scheduler-empty-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  margin-bottom: 1rem;
-  border-radius: 16px;
-  color: var(--vh-muted);
-  background: var(--bs-secondary-bg);
 }
 </style>

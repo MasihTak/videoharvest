@@ -17,3 +17,89 @@ h4, h5, h6,
 .h4, .h5, .h6 {
   letter-spacing: -0.015em;
 }
+
+// Shared list-row action button — Downloads/Scheduler/Logs pages
+.btn-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--vh-ink);
+  background: transparent;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  transition: background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1),
+    border-color 0.15s cubic-bezier(0.25, 1, 0.5, 1),
+    color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.btn-chip:hover:not(:disabled) {
+  background: var(--bs-secondary-bg);
+}
+
+.btn-chip:disabled {
+  opacity: 0.6;
+}
+
+.btn-chip:focus-visible {
+  outline: 2px solid var(--vh-primary);
+  outline-offset: 2px;
+}
+
+.btn-chip--primary {
+  color: var(--vh-primary-text);
+  background: var(--vh-primary);
+  border-color: var(--vh-primary);
+}
+
+.btn-chip--primary:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--vh-primary), black 12%);
+  border-color: color-mix(in oklch, var(--vh-primary), black 12%);
+}
+
+.btn-chip--danger {
+  color: var(--vh-primary);
+  border-color: color-mix(in oklch, var(--vh-primary) 35%, transparent);
+}
+
+.btn-chip--danger:hover:not(:disabled) {
+  color: var(--vh-primary-text);
+  background: var(--vh-primary);
+  border-color: var(--vh-primary);
+}
+
+.btn-chip--icon {
+  width: 32px;
+  padding: 0;
+  color: var(--vh-muted);
+}
+
+.btn-chip--icon:hover:not(:disabled) {
+  color: var(--vh-ink);
+}
+
+// Shared empty state — dashed card with icon tile, title, muted hint
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  border: 1px dashed var(--bs-border-color);
+  border-radius: var(--bs-border-radius-lg);
+}
+
+.empty-state-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 1rem;
+  border-radius: 16px;
+  color: var(--vh-muted);
+  background: var(--bs-secondary-bg);
+}

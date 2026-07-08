@@ -128,7 +128,7 @@ function canRetry(item) {
         <button
           v-if="retryableFailed.length"
           type="button"
-          class="dl-btn"
+          class="btn-chip"
           @click="retryAllFailed"
         >
           Retry all failed
@@ -136,7 +136,7 @@ function canRetry(item) {
         <button
           v-if="completedItems.length"
           type="button"
-          class="dl-btn"
+          class="btn-chip"
           @click="clearCompleted"
         >
           Clear completed
@@ -173,9 +173,9 @@ function canRetry(item) {
 
     <div
       v-if="!items.length"
-      class="downloads-empty"
+      class="empty-state"
     >
-      <span class="downloads-empty-icon">
+      <span class="empty-state-icon">
         <svg
           viewBox="0 0 24 24"
           width="26"
@@ -358,7 +358,7 @@ function canRetry(item) {
           <button
             v-if="item.status === 'downloading'"
             type="button"
-            class="dl-btn dl-btn--danger"
+            class="btn-chip btn-chip--danger"
             @click="store.cancel(item.id)"
           >
             Cancel
@@ -368,14 +368,14 @@ function canRetry(item) {
             <template v-if="item.status === 'completed' && item.location">
               <button
                 type="button"
-                class="dl-btn dl-btn--primary"
+                class="btn-chip btn-chip--primary"
                 @click="openFile(item)"
               >
                 Open
               </button>
               <button
                 type="button"
-                class="dl-btn"
+                class="btn-chip"
                 @click="showInFolder(item)"
               >
                 Show in folder
@@ -385,7 +385,7 @@ function canRetry(item) {
             <button
               v-if="canRetry(item)"
               type="button"
-              class="dl-btn dl-btn--primary"
+              class="btn-chip btn-chip--primary"
               @click="store.retry(item.id)"
             >
               Retry
@@ -393,7 +393,7 @@ function canRetry(item) {
 
             <button
               type="button"
-              class="dl-btn dl-btn--icon"
+              class="btn-chip btn-chip--icon"
               aria-label="Remove from list"
               title="Remove"
               @click="store.remove(item.id)"
@@ -621,86 +621,6 @@ function canRetry(item) {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-}
-
-.dl-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-  padding: 0 0.7rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--vh-ink);
-  background: transparent;
-  border: 1px solid var(--bs-border-color);
-  border-radius: var(--bs-border-radius);
-  transition: background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1),
-    border-color 0.15s cubic-bezier(0.25, 1, 0.5, 1),
-    color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.dl-btn:hover {
-  background: var(--bs-secondary-bg);
-}
-
-.dl-btn:focus-visible {
-  outline: 2px solid var(--vh-primary);
-  outline-offset: 2px;
-}
-
-.dl-btn--primary {
-  color: var(--vh-primary-text);
-  background: var(--vh-primary);
-  border-color: var(--vh-primary);
-}
-
-.dl-btn--primary:hover {
-  background: color-mix(in oklch, var(--vh-primary), black 12%);
-  border-color: color-mix(in oklch, var(--vh-primary), black 12%);
-}
-
-.dl-btn--danger {
-  color: var(--vh-primary);
-  border-color: color-mix(in oklch, var(--vh-primary) 35%, transparent);
-}
-
-.dl-btn--danger:hover {
-  color: var(--vh-primary-text);
-  background: var(--vh-primary);
-  border-color: var(--vh-primary);
-}
-
-.dl-btn--icon {
-  width: 32px;
-  padding: 0;
-  color: var(--vh-muted);
-}
-
-.dl-btn--icon:hover {
-  color: var(--vh-ink);
-}
-
-.downloads-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 3.5rem 1.5rem;
-  border: 1px dashed var(--bs-border-color);
-  border-radius: var(--bs-border-radius-lg);
-}
-
-.downloads-empty-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  margin-bottom: 1rem;
-  border-radius: 16px;
-  color: var(--vh-muted);
-  background: var(--bs-secondary-bg);
 }
 
 .downloads {

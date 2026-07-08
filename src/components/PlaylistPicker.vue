@@ -138,7 +138,7 @@ async function download() {
       />
       <button
         type="button"
-        class="dl-btn"
+        class="btn-chip"
         @click="applyRange"
       >
         Apply range
@@ -146,14 +146,14 @@ async function download() {
       <span class="range-spacer" />
       <button
         type="button"
-        class="dl-btn"
+        class="btn-chip"
         @click="selectAll"
       >
         Select all
       </button>
       <button
         type="button"
-        class="dl-btn"
+        class="btn-chip"
         @click="selectNone"
       >
         Select none
@@ -257,23 +257,6 @@ async function download() {
 
 .range-spacer {
   flex: 1;
-}
-
-.dl-btn {
-  display: inline-flex;
-  align-items: center;
-  height: 30px;
-  padding: 0 0.65rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--vh-ink);
-  background: transparent;
-  border: 1px solid var(--bs-border-color);
-  border-radius: var(--bs-border-radius);
-}
-
-.dl-btn:hover {
-  background: var(--bs-secondary-bg);
 }
 
 .entry-list {

@@ -66,7 +66,7 @@ onMounted(load);
       <div class="logs-head-actions">
         <button
           type="button"
-          class="logs-btn"
+          class="btn-chip"
           :disabled="loading"
           @click="load"
         >
@@ -74,7 +74,7 @@ onMounted(load);
         </button>
         <button
           type="button"
-          class="logs-btn logs-btn--danger"
+          class="btn-chip btn-chip--danger"
           :disabled="loading || !logs.length"
           @click="clear"
         >
@@ -158,44 +158,6 @@ onMounted(load);
 .logs-head-actions {
   display: flex;
   gap: 0.4rem;
-}
-
-.logs-btn {
-  height: 32px;
-  padding: 0 0.7rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--vh-ink);
-  background: transparent;
-  border: 1px solid var(--bs-border-color);
-  border-radius: var(--bs-border-radius);
-  transition: background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1),
-    color 0.15s cubic-bezier(0.25, 1, 0.5, 1),
-    border-color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.logs-btn:hover:not(:disabled) {
-  background: var(--bs-secondary-bg);
-}
-
-.logs-btn:disabled {
-  opacity: 0.6;
-}
-
-.logs-btn:focus-visible {
-  outline: 2px solid var(--vh-primary);
-  outline-offset: 2px;
-}
-
-.logs-btn--danger {
-  color: var(--vh-primary);
-  border-color: color-mix(in oklch, var(--vh-primary) 35%, transparent);
-}
-
-.logs-btn--danger:hover:not(:disabled) {
-  color: var(--vh-primary-text);
-  background: var(--vh-primary);
-  border-color: var(--vh-primary);
 }
 
 .logs-filters {
