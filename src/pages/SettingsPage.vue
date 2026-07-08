@@ -69,202 +69,307 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section>
-    <h1 class="h3 mb-3">
-      Settings
-    </h1>
+  <section class="settings">
+    <header class="settings-head">
+      <h1 class="h3 mb-1">
+        Settings
+      </h1>
+      <p class="text-muted small mb-0">
+        Defaults applied to new downloads and scheduled runs.
+      </p>
+    </header>
 
-    <div class="card mb-3">
-      <div class="card-body">
-        <h2 class="h5 card-title">
-          Download location
+    <div class="settings-groups">
+      <section class="settings-group">
+        <h2 class="settings-group-title">
+          Downloads
         </h2>
 
-        <p class="mb-3">
-          Files are saved to <code>{{ downloadFolder }}</code>.
-        </p>
+        <div class="settings-rows">
+          <div class="settings-row">
+            <div class="settings-row-main">
+              <span class="settings-row-label">Download location</span>
+              <span
+                class="settings-row-desc"
+                :title="downloadFolder"
+              ><code>{{ downloadFolder }}</code></span>
+            </div>
+            <button
+              type="button"
+              class="btn-chip settings-control"
+              @click="chooseFolder"
+            >
+              Choose folder
+            </button>
+          </div>
 
-        <button
-          type="button"
-          class="btn btn-outline-primary"
-          @click="chooseFolder"
-        >
-          Choose folder
-        </button>
-      </div>
-    </div>
+          <div class="settings-row">
+            <div class="settings-row-main">
+              <label
+                class="settings-row-label"
+                for="defaultFormat"
+              >
+                Default format
+              </label>
+            </div>
+            <select
+              id="defaultFormat"
+              v-model="defaultFormat"
+              class="form-select form-select-sm settings-control"
+              @change="setSetting('default_format', defaultFormat)"
+            >
+              <option value="full">
+                Full video
+              </option>
+              <option value="video">
+                Video only
+              </option>
+              <option value="audio">
+                Audio only
+              </option>
+            </select>
+          </div>
 
-    <div class="card">
-      <div class="card-body">
-        <h2 class="h5 card-title">
-          Updates
-        </h2>
-
-        <p class="mb-3">
-          yt-dlp version: <code>{{ version }}</code>
-        </p>
-
-        <div class="d-flex align-items-center gap-3 mb-3">
-          <button
-            type="button"
-            class="btn btn-primary"
-            :disabled="updating"
-            @click="onUpdate"
-          >
-            {{ updating ? "Updating…" : "Update yt-dlp" }}
-          </button>
+          <div class="settings-row">
+            <div class="settings-row-main">
+              <label
+                class="settings-row-label"
+                for="defaultBestQuality"
+              >
+                Always pre-select the best available quality
+              </label>
+            </div>
+            <div class="form-check form-switch mb-0">
+              <input
+                id="defaultBestQuality"
+                v-model="defaultBestQuality"
+                class="form-check-input"
+                type="checkbox"
+                @change="onToggle('default_best_quality', defaultBestQuality)"
+              />
+            </div>
+          </div>
         </div>
+      </section>
 
-        <div class="form-check form-switch mb-3">
-          <input
-            id="checkOnLaunch"
-            v-model="checkOnLaunch"
-            class="form-check-input"
-            type="checkbox"
-            @change="onToggle('check_on_launch', checkOnLaunch)"
-          />
-          <label
-            class="form-check-label"
-            for="checkOnLaunch"
-          >
-            Check for yt-dlp updates on launch
-          </label>
+      <section class="settings-group">
+        <h2 class="settings-group-title">
+          Scheduler
+        </h2>
+
+        <div class="settings-rows">
+          <div class="settings-row">
+            <div class="settings-row-main">
+              <label
+                class="settings-row-label"
+                for="schedulerEnabled"
+              >
+                Enable scheduler
+              </label>
+            </div>
+            <div class="form-check form-switch mb-0">
+              <input
+                id="schedulerEnabled"
+                v-model="schedulerEnabled"
+                class="form-check-input"
+                type="checkbox"
+                @change="onToggle('scheduler_enabled', schedulerEnabled)"
+              />
+            </div>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-row-main">
+              <label
+                class="settings-row-label"
+                for="schedulerRetryFailed"
+              >
+                Retry failed scheduled downloads
+              </label>
+            </div>
+            <div class="form-check form-switch mb-0">
+              <input
+                id="schedulerRetryFailed"
+                v-model="schedulerRetryFailed"
+                class="form-check-input"
+                type="checkbox"
+                @change="onToggle('scheduler_retry_failed', schedulerRetryFailed)"
+              />
+            </div>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-row-main">
+              <label
+                class="settings-row-label"
+                for="schedulerDefaultTime"
+              >
+                Default schedule time
+              </label>
+            </div>
+            <input
+              id="schedulerDefaultTime"
+              v-model="schedulerDefaultTime"
+              type="time"
+              class="form-control form-control-sm settings-control"
+              @change="setSetting('scheduler_default_time', schedulerDefaultTime)"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section class="settings-group">
+        <h2 class="settings-group-title">
+          Notifications
+        </h2>
+
+        <div class="settings-rows">
+          <div class="settings-row">
+            <div class="settings-row-main">
+              <label
+                class="settings-row-label"
+                for="notificationsEnabled"
+              >
+                Notify on download completed, failed, and scheduled start
+              </label>
+            </div>
+            <div class="form-check form-switch mb-0">
+              <input
+                id="notificationsEnabled"
+                v-model="notificationsEnabled"
+                class="form-check-input"
+                type="checkbox"
+                @change="onToggle('notifications_enabled', notificationsEnabled)"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="settings-group">
+        <h2 class="settings-group-title">
+          yt-dlp
+        </h2>
+
+        <div class="settings-rows">
+          <div class="settings-row">
+            <div class="settings-row-main">
+              <span class="settings-row-label">yt-dlp version</span>
+              <span class="settings-row-desc"><code>{{ version }}</code></span>
+            </div>
+            <button
+              type="button"
+              class="btn-chip btn-chip--primary settings-control"
+              :disabled="updating"
+              @click="onUpdate"
+            >
+              {{ updating ? "Updating…" : "Update" }}
+            </button>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-row-main">
+              <label
+                class="settings-row-label"
+                for="checkOnLaunch"
+              >
+                Check for yt-dlp updates on launch
+              </label>
+            </div>
+            <div class="form-check form-switch mb-0">
+              <input
+                id="checkOnLaunch"
+                v-model="checkOnLaunch"
+                class="form-check-input"
+                type="checkbox"
+                @change="onToggle('check_on_launch', checkOnLaunch)"
+              />
+            </div>
+          </div>
         </div>
 
         <pre
           v-if="message"
-          class="bg-body-secondary p-3 rounded small mb-0"
+          class="settings-log"
         >{{ message }}</pre>
-      </div>
-    </div>
-
-    <div class="card mt-3">
-      <div class="card-body">
-        <h2 class="h5 card-title">
-          Scheduler
-        </h2>
-
-        <div class="form-check form-switch mb-3">
-          <input
-            id="schedulerEnabled"
-            v-model="schedulerEnabled"
-            class="form-check-input"
-            type="checkbox"
-            @change="onToggle('scheduler_enabled', schedulerEnabled)"
-          />
-          <label
-            class="form-check-label"
-            for="schedulerEnabled"
-          >
-            Enable scheduler
-          </label>
-        </div>
-
-        <div class="form-check form-switch mb-3">
-          <input
-            id="schedulerRetryFailed"
-            v-model="schedulerRetryFailed"
-            class="form-check-input"
-            type="checkbox"
-            @change="onToggle('scheduler_retry_failed', schedulerRetryFailed)"
-          />
-          <label
-            class="form-check-label"
-            for="schedulerRetryFailed"
-          >
-            Retry failed scheduled downloads
-          </label>
-        </div>
-
-        <div>
-          <label
-            class="form-label small"
-            for="schedulerDefaultTime"
-          >
-            Default schedule time
-          </label>
-          <input
-            id="schedulerDefaultTime"
-            v-model="schedulerDefaultTime"
-            type="time"
-            class="form-control form-control-sm w-auto"
-            @change="setSetting('scheduler_default_time', schedulerDefaultTime)"
-          />
-        </div>
-      </div>
-    </div>
-
-    <div class="card mt-3">
-      <div class="card-body">
-        <h2 class="h5 card-title">
-          Downloads
-        </h2>
-
-        <div class="mb-3">
-          <label
-            class="form-label small"
-            for="defaultFormat"
-          >
-            Default format
-          </label>
-          <select
-            id="defaultFormat"
-            v-model="defaultFormat"
-            class="form-select form-select-sm w-auto"
-            @change="setSetting('default_format', defaultFormat)"
-          >
-            <option value="full">
-              Full video
-            </option>
-            <option value="video">
-              Video only
-            </option>
-            <option value="audio">
-              Audio only
-            </option>
-          </select>
-        </div>
-
-        <div class="form-check form-switch mb-0">
-          <input
-            id="defaultBestQuality"
-            v-model="defaultBestQuality"
-            class="form-check-input"
-            type="checkbox"
-            @change="onToggle('default_best_quality', defaultBestQuality)"
-          />
-          <label
-            class="form-check-label"
-            for="defaultBestQuality"
-          >
-            Always pre-select the best available quality
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <div class="card mt-3">
-      <div class="card-body">
-        <h2 class="h5 card-title">
-          Notifications
-        </h2>
-
-        <div class="form-check form-switch mb-0">
-          <input
-            id="notificationsEnabled"
-            v-model="notificationsEnabled"
-            class="form-check-input"
-            type="checkbox"
-            @change="onToggle('notifications_enabled', notificationsEnabled)"
-          />
-          <label
-            class="form-check-label"
-            for="notificationsEnabled"
-          >
-            Notify on download completed, failed, and scheduled start
-          </label>
-        </div>
-      </div>
+      </section>
     </div>
   </section>
 </template>
+
+<style scoped>
+.settings {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.settings-head {
+  margin-bottom: 1.75rem;
+}
+
+.settings-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+}
+
+.settings-group-title {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--vh-ink);
+  margin: 0 0 0.6rem;
+}
+
+.settings-rows {
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-lg);
+  background: var(--bs-body-bg);
+  overflow: hidden;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+}
+
+.settings-row + .settings-row {
+  border-top: 1px solid var(--bs-border-color);
+}
+
+.settings-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.settings-row-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.settings-row-desc {
+  font-size: 0.8rem;
+  color: var(--vh-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings-control {
+  flex-shrink: 0;
+  width: auto;
+}
+
+.settings-log {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  background: var(--bs-body-secondary);
+  border-radius: var(--bs-border-radius);
+}
+</style>
