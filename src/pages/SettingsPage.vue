@@ -51,32 +51,8 @@ async function onUpdate() {
   }
 }
 
-async function onToggleCheck() {
-  await setSetting("check_on_launch", checkOnLaunch.value ? "1" : "0");
-}
-
-async function onToggleScheduler() {
-  await setSetting("scheduler_enabled", schedulerEnabled.value ? "1" : "0");
-}
-
-async function onToggleSchedulerRetry() {
-  await setSetting("scheduler_retry_failed", schedulerRetryFailed.value ? "1" : "0");
-}
-
-async function onChangeSchedulerDefaultTime() {
-  await setSetting("scheduler_default_time", schedulerDefaultTime.value);
-}
-
-async function onToggleNotifications() {
-  await setSetting("notifications_enabled", notificationsEnabled.value ? "1" : "0");
-}
-
-async function onChangeDefaultFormat() {
-  await setSetting("default_format", defaultFormat.value);
-}
-
-async function onToggleDefaultBestQuality() {
-  await setSetting("default_best_quality", defaultBestQuality.value ? "1" : "0");
+async function onToggle(key, ref) {
+  await setSetting(key, ref.value ? "1" : "0");
 }
 
 onMounted(async () => {
@@ -145,7 +121,7 @@ onMounted(async () => {
             v-model="checkOnLaunch"
             class="form-check-input"
             type="checkbox"
-            @change="onToggleCheck"
+            @change="onToggle('check_on_launch', checkOnLaunch)"
           />
           <label
             class="form-check-label"
@@ -174,7 +150,7 @@ onMounted(async () => {
             v-model="schedulerEnabled"
             class="form-check-input"
             type="checkbox"
-            @change="onToggleScheduler"
+            @change="onToggle('scheduler_enabled', schedulerEnabled)"
           />
           <label
             class="form-check-label"
@@ -190,7 +166,7 @@ onMounted(async () => {
             v-model="schedulerRetryFailed"
             class="form-check-input"
             type="checkbox"
-            @change="onToggleSchedulerRetry"
+            @change="onToggle('scheduler_retry_failed', schedulerRetryFailed)"
           />
           <label
             class="form-check-label"
@@ -212,7 +188,7 @@ onMounted(async () => {
             v-model="schedulerDefaultTime"
             type="time"
             class="form-control form-control-sm w-auto"
-            @change="onChangeSchedulerDefaultTime"
+            @change="setSetting('scheduler_default_time', schedulerDefaultTime)"
           />
         </div>
       </div>
@@ -235,7 +211,7 @@ onMounted(async () => {
             id="defaultFormat"
             v-model="defaultFormat"
             class="form-select form-select-sm w-auto"
-            @change="onChangeDefaultFormat"
+            @change="setSetting('default_format', defaultFormat)"
           >
             <option value="full">
               Full video
@@ -255,7 +231,7 @@ onMounted(async () => {
             v-model="defaultBestQuality"
             class="form-check-input"
             type="checkbox"
-            @change="onToggleDefaultBestQuality"
+            @change="onToggle('default_best_quality', defaultBestQuality)"
           />
           <label
             class="form-check-label"
@@ -279,7 +255,7 @@ onMounted(async () => {
             v-model="notificationsEnabled"
             class="form-check-input"
             type="checkbox"
-            @change="onToggleNotifications"
+            @change="onToggle('notifications_enabled', notificationsEnabled)"
           />
           <label
             class="form-check-label"
