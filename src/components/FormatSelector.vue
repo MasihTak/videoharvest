@@ -3,18 +3,13 @@ import { computed, onMounted, ref } from "vue";
 import { categorizeFormats } from "@/utils/formats.js";
 import { getSetting } from "@/services/settings.js";
 import { resolveDefaultRun } from "@/services/scheduler.js";
+import ModeTabs from "@/components/ModeTabs.vue";
 
 const props = defineProps({
   formats: { type: Array, required: true },
 });
 
 const categorized = computed(() => categorizeFormats(props.formats));
-
-const modes = [
-  { key: "full", label: "Full video" },
-  { key: "video", label: "Video only" },
-  { key: "audio", label: "Audio only" },
-];
 
 const emit = defineEmits(["download", "schedule"]);
 
@@ -72,23 +67,10 @@ function requestSchedule() {
 <template>
   <div class="format-selector">
     <!-- Segmented mode control -->
-    <div
-      class="mode-tabs"
-      role="group"
-      aria-label="Format type"
-    >
-      <button
-        v-for="m in modes"
-        :key="m.key"
-        type="button"
-        class="mode-tab"
-        :class="{ 'is-active': mode === m.key }"
-        :aria-pressed="mode === m.key"
-        @click="setMode(m.key)"
-      >
-        {{ m.label }}
-      </button>
-    </div>
+    <ModeTabs
+      :model-value="mode"
+      @update:model-value="setMode"
+    />
 
     <!-- Format list -->
     <div
@@ -198,47 +180,6 @@ function requestSchedule() {
 </template>
 
 <style scoped>
-/* Segmented control */
-.mode-tabs {
-  display: flex;
-  background: var(--bs-secondary-bg);
-  border-radius: var(--bs-border-radius);
-  padding: 3px;
-  gap: 2px;
-  margin-bottom: 0.75rem;
-}
-
-.mode-tab {
-  flex: 1;
-  padding: 0.35rem 0.75rem;
-  border: none;
-  border-radius: calc(var(--bs-border-radius) - 2px);
-  background: transparent;
-  color: var(--bs-secondary-color);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1),
-    color 0.15s cubic-bezier(0.25, 1, 0.5, 1),
-    box-shadow 0.15s cubic-bezier(0.25, 1, 0.5, 1),
-    transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.mode-tab:hover:not(.is-active) {
-  color: var(--bs-body-color);
-}
-
-.mode-tab:active {
-  transform: scale(0.97);
-}
-
-.mode-tab.is-active {
-  background: var(--bs-body-bg);
-  color: var(--bs-body-color);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.04);
-}
-
 /* Format list */
 .format-list {
   border: 1px solid var(--bs-border-color);
@@ -271,6 +212,11 @@ function requestSchedule() {
   background: var(--bs-secondary-bg);
 }
 
+.format-row:focus-visible {
+  outline: 2px solid var(--vh-primary);
+  outline-offset: -2px;
+}
+
 .format-row:active {
   transform: scale(0.99);
 }
@@ -281,7 +227,7 @@ function requestSchedule() {
 
 .format-label {
   font-size: 0.875rem;
-  color: var(--bs-body-color);
+  color: var(--vh-ink);
 }
 
 .format-row.is-selected .format-label {
@@ -291,14 +237,13 @@ function requestSchedule() {
 
 .format-size {
   font-size: 0.75rem;
-  color: var(--bs-secondary-color);
+  color: var(--vh-muted);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .format-row.is-selected .format-size {
   color: var(--vh-primary);
-  opacity: 0.75;
 }
 
 @media (prefers-reduced-motion: reduce) {

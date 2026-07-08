@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { useDownloadsStore } from "@/stores/downloads.js";
 import { useRouter } from "vue-router";
 import { pickThumbnail } from "@/utils/formats.js";
+import ModeTabs from "@/components/ModeTabs.vue";
 
 const props = defineProps({
   data: { type: Object, required: true },
@@ -29,11 +30,6 @@ const rangeTo = ref(entries.value.length);
 // extraction per video would be needed for that), so quality is a height
 // cap passed straight to the format selector rather than picked from a
 // real formats list.
-const modes = [
-  { key: "full", label: "Full video" },
-  { key: "video", label: "Video only" },
-  { key: "audio", label: "Audio only" },
-];
 const mode = ref("full");
 
 const QUALITIES = [
@@ -101,23 +97,7 @@ async function download() {
 
 <template>
   <div class="playlist-picker">
-    <div
-      class="mode-tabs"
-      role="group"
-      aria-label="Format type"
-    >
-      <button
-        v-for="m in modes"
-        :key="m.key"
-        type="button"
-        class="mode-tab"
-        :class="{ 'is-active': mode === m.key }"
-        :aria-pressed="mode === m.key"
-        @click="mode = m.key"
-      >
-        {{ m.label }}
-      </button>
-    </div>
+    <ModeTabs v-model="mode" />
 
     <div
       v-if="mode !== 'audio'"
@@ -221,34 +201,6 @@ async function download() {
 </template>
 
 <style scoped>
-.mode-tabs {
-  display: flex;
-  background: var(--bs-secondary-bg);
-  border-radius: var(--bs-border-radius);
-  padding: 3px;
-  gap: 2px;
-  margin-bottom: 0.75rem;
-}
-
-.mode-tab {
-  flex: 1;
-  padding: 0.35rem 0.75rem;
-  border: none;
-  border-radius: calc(var(--bs-border-radius) - 2px);
-  background: transparent;
-  color: var(--bs-secondary-color);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1), color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.mode-tab.is-active {
-  background: var(--bs-body-bg);
-  color: var(--bs-body-color);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.04);
-}
-
 .quality-list {
   border: 1px solid var(--bs-border-color);
   border-radius: var(--bs-border-radius);
