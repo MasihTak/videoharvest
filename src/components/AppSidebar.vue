@@ -17,6 +17,41 @@ function toggleCollapsed() {
   collapsed.value = !collapsed.value;
   localStorage.setItem("sidebar-collapsed", String(collapsed.value));
 }
+
+const NAV_ITEMS = [
+  {
+    to: "/dashboard",
+    label: "Dashboard",
+    paths: ["M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"],
+  },
+  {
+    to: "/downloads",
+    label: "Downloads",
+    paths: ["M12 3v12m0 0 4-4m-4 4-4-4", "M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"],
+  },
+  {
+    to: "/scheduler",
+    label: "Scheduler",
+    rect: { x: 3, y: 4, width: 18, height: 17, rx: 2 },
+    paths: ["M3 9h18M8 2v4m8-4v4"],
+  },
+  {
+    to: "/logs",
+    label: "Logs",
+    paths: ["M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"],
+  },
+];
+
+const FOOTER_NAV_ITEMS = [
+  {
+    to: "/settings",
+    label: "Settings",
+    circle: { cx: 12, cy: 12, r: 3 },
+    paths: [
+      "M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z",
+    ],
+  },
+];
 </script>
 
 <template>
@@ -61,54 +96,9 @@ function toggleCollapsed() {
 
     <nav class="sidebar-nav d-flex flex-column gap-2">
       <RouterLink
-        to="/dashboard"
-        class="sidebar-item"
-        active-class="is-active"
-        @click="$emit('close')"
-      >
-        <span class="sidebar-icon">
-          <svg
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z" />
-          </svg>
-        </span>
-        <span class="sidebar-label">Dashboard</span>
-      </RouterLink>
-
-      <RouterLink
-        to="/downloads"
-        class="sidebar-item"
-        active-class="is-active"
-        @click="$emit('close')"
-      >
-        <span class="sidebar-icon">
-          <svg
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M12 3v12m0 0 4-4m-4 4-4-4" />
-            <path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2" />
-          </svg>
-        </span>
-        <span class="sidebar-label">Downloads</span>
-      </RouterLink>
-
-      <RouterLink
-        to="/scheduler"
+        v-for="item in NAV_ITEMS"
+        :key="item.to"
+        :to="item.to"
         class="sidebar-item"
         active-class="is-active"
         @click="$emit('close')"
@@ -125,45 +115,25 @@ function toggleCollapsed() {
             stroke-linejoin="round"
           >
             <rect
-              x="3"
-              y="4"
-              width="18"
-              height="17"
-              rx="2"
+              v-if="item.rect"
+              v-bind="item.rect"
             />
-            <path d="M3 9h18M8 2v4m8-4v4" />
+            <path
+              v-for="d in item.paths"
+              :key="d"
+              :d="d"
+            />
           </svg>
         </span>
-        <span class="sidebar-label">Scheduler</span>
-      </RouterLink>
-
-      <RouterLink
-        to="/logs"
-        class="sidebar-item"
-        active-class="is-active"
-        @click="$emit('close')"
-      >
-        <span class="sidebar-icon">
-          <svg
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />
-          </svg>
-        </span>
-        <span class="sidebar-label">Logs</span>
+        <span class="sidebar-label">{{ item.label }}</span>
       </RouterLink>
     </nav>
 
     <nav class="sidebar-footer d-flex flex-column gap-2 mt-auto">
       <RouterLink
-        to="/settings"
+        v-for="item in FOOTER_NAV_ITEMS"
+        :key="item.to"
+        :to="item.to"
         class="sidebar-item"
         active-class="is-active"
         @click="$emit('close')"
@@ -180,14 +150,17 @@ function toggleCollapsed() {
             stroke-linejoin="round"
           >
             <circle
-              cx="12"
-              cy="12"
-              r="3"
+              v-if="item.circle"
+              v-bind="item.circle"
             />
-            <path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z" />
+            <path
+              v-for="d in item.paths"
+              :key="d"
+              :d="d"
+            />
           </svg>
         </span>
-        <span class="sidebar-label">Settings</span>
+        <span class="sidebar-label">{{ item.label }}</span>
       </RouterLink>
     </nav>
   </aside>
