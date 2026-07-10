@@ -28,6 +28,18 @@ export default defineConfig(async () => ({
 
   envPrefix: ["VITE_", "TAURI_ENV_*"],
 
+  test: {
+    environment: "node",
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      include: ["src/**/*.js"],
+      // App bootstrap and the route table are declarative wiring with no logic
+      // of their own, and require a DOM (createWebHistory/mount) to execute at all.
+      exclude: ["src/main.js", "src/router/**"],
+    },
+  },
+
   clearScreen: false,
   server: {
     port: 5173,
