@@ -38,6 +38,10 @@ const completedItems = computed(() =>
   items.value.filter((it) => it.status === "completed"),
 );
 
+// An item nobody will work on again — completed, failed or canceled. It owns
+// its full share of the playlist bar regardless of how far its bytes got.
+const SETTLED = ["completed", "failed", "canceled"];
+
 // One aggregate row per playlist batch — rolls up all its item rows, which
 // already render individually below with their own per-video progress.
 const playlistGroups = computed(() => {
@@ -55,7 +59,15 @@ const playlistGroups = computed(() => {
       total: g.items.length,
       done: g.items.filter((it) => it.status === "completed").length,
       failed: g.items.filter((it) => it.status === "failed").length,
-      percent: Math.round(g.items.reduce((sum, it) => sum + it.progress, 0) / g.items.length),
+      running: g.items.some((it) => it.status === "downloading" || it.status === "pending"),
+      // Measures work left, not bytes fetched — so it never runs backwards when
+      // yt-dlp restarts at 0% for the audio stream, and always lands on 100%.
+      percent: Math.round(
+        g.items.reduce(
+          (sum, it) => sum + (SETTLED.includes(it.status) ? 100 : it.progress),
+          0,
+        ) / g.items.length,
+      ),
     }))
     .reverse();
 });
