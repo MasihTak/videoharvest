@@ -163,6 +163,14 @@ function canRetry(item) {
           <span class="playlist-group-count">
             {{ g.done }}/{{ g.total }} complete<template v-if="g.failed"> · {{ g.failed }} failed</template>
           </span>
+          <button
+            v-if="g.running"
+            type="button"
+            class="btn-chip btn-chip--danger"
+            @click="store.cancelPlaylist(g.id)"
+          >
+            Cancel all
+          </button>
         </div>
         <div class="dl-progress">
           <div
@@ -402,12 +410,13 @@ function canRetry(item) {
 
 .playlist-group-head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
   gap: 0.75rem;
 }
 
 .playlist-group-title {
+  flex: 1;
+  min-width: 0;
   font-size: 0.875rem;
   font-weight: 600;
   white-space: nowrap;

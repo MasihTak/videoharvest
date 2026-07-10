@@ -135,9 +135,23 @@ export const useDownloadsStore = defineStore("downloads", () => {
   async function cancel(id) {
     const item = find(id);
     if (!item || item.status !== "downloading") return;
+    // Claim the item before awaiting: the kill races a `sidecar://done` for the
+    // same id, and a done event that still sees "downloading" would fail() it.
+    item.status = "canceled";
     await cancelProcess(id);
     await setStatus(item, "canceled");
     pump();
+  }
+
+  // Cancel a whole batch. Canceling just the running item isn't enough — pump()
+  // starts the next entry of the same playlist the moment the current one ends.
+  async function cancelPlaylist(playlistId) {
+    const batch = items.value.filter((it) => it.playlistId === playlistId);
+    for (const it of batch) {
+      if (it.status === "pending") await setStatus(it, "canceled");
+    }
+    const running = batch.find((it) => it.status === "downloading");
+    if (running) await cancel(running.id);
   }
 
   async function retry(id) {
@@ -247,7 +261,17 @@ export const useDownloadsStore = defineStore("downloads", () => {
     });
   }
 
-  return { items, enqueue, enqueuePlaylist, cancel, remove, retry, requeueByDbId, load };
+  return {
+    items,
+    enqueue,
+    enqueuePlaylist,
+    cancel,
+    cancelPlaylist,
+    remove,
+    retry,
+    requeueByDbId,
+    load,
+  };
 });
 
 if (import.meta.hot) {
