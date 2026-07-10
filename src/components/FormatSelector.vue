@@ -20,15 +20,15 @@ const date = ref("");
 const time = ref("");
 const schedulerEnabled = ref(true);
 const defaultTime = ref("02:00");
+const bestQuality = ref(false);
 
 onMounted(async () => {
   schedulerEnabled.value = (await getSetting("scheduler_enabled", "1")) === "1";
   defaultTime.value = await getSetting("scheduler_default_time", "02:00");
 
   mode.value = await getSetting("default_format", "full");
-  if ((await getSetting("default_best_quality", "0")) === "1") {
-    selected.value = rows.value[0]?.id ?? null;
-  }
+  bestQuality.value = (await getSetting("default_best_quality", "0")) === "1";
+  if (bestQuality.value) selectBest();
 });
 
 function useDefaultTime() {
@@ -39,9 +39,15 @@ const rows = computed(() => categorized.value[mode.value]);
 
 const selectedRow = computed(() => rows.value.find((r) => r.id === selected.value));
 
+// rows are sorted best-first by categorizeFormats (height desc, or abr desc for audio).
+function selectBest() {
+  selected.value = rows.value[0]?.id ?? null;
+}
+
 function setMode(key) {
   mode.value = key;
-  selected.value = null;
+  if (bestQuality.value) selectBest();
+  else selected.value = null;
 }
 
 function requestDownload() {
