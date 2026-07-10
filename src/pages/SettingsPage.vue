@@ -51,8 +51,8 @@ async function onUpdate() {
   }
 }
 
-async function onToggle(key, ref) {
-  await setSetting(key, ref.value ? "1" : "0");
+async function onToggle(key, enabled) {
+  await setSetting(key, enabled ? "1" : "0");
 }
 
 onMounted(async () => {
