@@ -201,7 +201,9 @@ export const useDownloadsStore = defineStore("downloads", () => {
 
   const unlistenOutput = onOutput((payload) => {
     const item = find(payload.id);
-    if (!item) return;
+    // A killed process keeps flushing buffered lines; ignore them, or a canceled
+    // item's progress bar carries on climbing after the user stopped it.
+    if (!item || item.status !== "downloading") return;
     const p = parseProgress(payload.line);
     if (p) {
       if (p.percent != null) item.progress = p.percent;
