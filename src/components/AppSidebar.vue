@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
+import logo from "@/assets/logo.png";
 
 defineProps({
   open: {
@@ -56,122 +57,114 @@ const FOOTER_NAV_ITEMS = [
 
 <template>
   <aside
-    class="app-sidebar flex-shrink-0 d-flex flex-column"
+    class="app-sidebar flex-shrink-0"
     :class="{ 'is-open': open, 'is-collapsed': collapsed }"
   >
     <button
       type="button"
-      class="sidebar-logo"
+      class="sidebar-toggle d-none d-md-flex"
       :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
       @click="toggleCollapsed"
     >
       <svg
         viewBox="0 0 24 24"
-        width="22"
-        height="22"
-        fill="currentColor"
+        width="14"
+        height="14"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
       >
-        <circle
-          cx="8"
-          cy="8"
-          r="3"
-        />
-        <circle
-          cx="16"
-          cy="8"
-          r="3"
-        />
-        <circle
-          cx="8"
-          cy="16"
-          r="3"
-        />
-        <circle
-          cx="16"
-          cy="16"
-          r="3"
-        />
+        <path d="M15 6l-6 6 6 6" />
       </svg>
     </button>
 
-    <nav class="sidebar-nav d-flex flex-column gap-2">
-      <RouterLink
-        v-for="item in NAV_ITEMS"
-        :key="item.to"
-        :to="item.to"
-        class="sidebar-item"
-        active-class="is-active"
-        @click="$emit('close')"
-      >
-        <span class="sidebar-icon">
-          <svg
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <rect
-              v-if="item.rect"
-              v-bind="item.rect"
-            />
-            <path
-              v-for="d in item.paths"
-              :key="d"
-              :d="d"
-            />
-          </svg>
-        </span>
-        <span class="sidebar-label">{{ item.label }}</span>
-      </RouterLink>
-    </nav>
+    <div class="sidebar-inner d-flex flex-column">
+      <div class="sidebar-logo">
+        <img
+          :src="logo"
+          alt="VideoHarvest"
+        />
+      </div>
 
-    <nav class="sidebar-footer d-flex flex-column gap-2 mt-auto">
-      <RouterLink
-        v-for="item in FOOTER_NAV_ITEMS"
-        :key="item.to"
-        :to="item.to"
-        class="sidebar-item"
-        active-class="is-active"
-        @click="$emit('close')"
-      >
-        <span class="sidebar-icon">
-          <svg
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle
-              v-if="item.circle"
-              v-bind="item.circle"
-            />
-            <path
-              v-for="d in item.paths"
-              :key="d"
-              :d="d"
-            />
-          </svg>
-        </span>
-        <span class="sidebar-label">{{ item.label }}</span>
-      </RouterLink>
-    </nav>
+      <nav class="sidebar-nav d-flex flex-column gap-2">
+        <RouterLink
+          v-for="item in NAV_ITEMS"
+          :key="item.to"
+          :to="item.to"
+          class="sidebar-item"
+          active-class="is-active"
+          @click="$emit('close')"
+        >
+          <span class="sidebar-icon">
+            <svg
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect
+                v-if="item.rect"
+                v-bind="item.rect"
+              />
+              <path
+                v-for="d in item.paths"
+                :key="d"
+                :d="d"
+              />
+            </svg>
+          </span>
+          <span class="sidebar-label">{{ item.label }}</span>
+        </RouterLink>
+      </nav>
+
+      <nav class="sidebar-footer d-flex flex-column gap-2 mt-auto">
+        <RouterLink
+          v-for="item in FOOTER_NAV_ITEMS"
+          :key="item.to"
+          :to="item.to"
+          class="sidebar-item"
+          active-class="is-active"
+          @click="$emit('close')"
+        >
+          <span class="sidebar-icon">
+            <svg
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle
+                v-if="item.circle"
+                v-bind="item.circle"
+              />
+              <path
+                v-for="d in item.paths"
+                :key="d"
+                :d="d"
+              />
+            </svg>
+          </span>
+          <span class="sidebar-label">{{ item.label }}</span>
+        </RouterLink>
+      </nav>
+    </div>
   </aside>
 </template>
 
 <style scoped>
 .app-sidebar {
+  position: relative;
   width: 248px;
-  padding: 1rem;
-  gap: 1.5rem;
-  overflow: hidden;
   background-color: var(--bs-dark);
   color: #fff;
   will-change: width;
@@ -180,6 +173,13 @@ const FOOTER_NAV_ITEMS = [
 
 .app-sidebar.is-collapsed {
   width: 76px;
+}
+
+.sidebar-inner {
+  height: 100%;
+  padding: 1rem;
+  gap: 1.5rem;
+  overflow: hidden;
 }
 
 .sidebar-label {
@@ -192,8 +192,15 @@ const FOOTER_NAV_ITEMS = [
 }
 
 .app-sidebar.is-collapsed .sidebar-label {
+  width: 0;
+  margin: 0;
   opacity: 0;
   pointer-events: none;
+}
+
+.app-sidebar.is-collapsed .sidebar-item {
+  justify-content: center;
+  gap: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -207,18 +214,54 @@ const FOOTER_NAV_ITEMS = [
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 48px;
   height: 48px;
   padding: 0;
   color: #fff;
+  overflow: hidden;
   border-radius: 14px;
   background-color: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.sidebar-logo:hover {
-  background-color: rgba(255, 255, 255, 0.12);
+.sidebar-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  top: 26px;
+  right: -12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  background-color: #2b2f36;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: color 0.15s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.sidebar-toggle svg {
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.sidebar-toggle:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.6);
+  background-color: #3a3f47;
+}
+
+.app-sidebar.is-collapsed .sidebar-toggle svg {
+  transform: rotate(180deg);
 }
 
 .sidebar-item {
