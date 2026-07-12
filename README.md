@@ -3,7 +3,7 @@
 
   # VideoHarvest
 
-  A modern, cross-platform desktop application for downloading videos and playlists using yt-dlp — without touching the command line.
+  A modern, cross-platform desktop application for downloading videos and playlists using yt-dlp — without touching the command line1
 
   ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue)
 
@@ -120,6 +120,25 @@ npm run tauri dev
 ```bash
 npm run tauri build
 ```
+---
+
+## Contributing
+
+Contributions are welcome.
+
+Please read:
+
+-   CONTRIBUTING.md
+-   CODE_OF_CONDUCT.md
+
+Before opening a pull request.
+
+
+## License
+
+This project is licensed under the MIT License.
+
+See LICENSE for details.
 
 ## Disclaimer
 
