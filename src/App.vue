@@ -8,7 +8,6 @@ import {
   checkLatestYtdlp,
   getYtdlpVersion,
 } from "@/services/binaries.js";
-import { getSetting } from "@/services/settings.js";
 import { notify } from "@/services/notifications.js";
 import { useDownloadsStore } from "@/stores/downloads.js";
 import { useSchedulerStore } from "@/stores/scheduler.js";
@@ -17,7 +16,6 @@ const ready = ref(null); // null = checking, true/false = known
 
 async function checkForUpdate() {
   try {
-    if ((await getSetting("check_on_launch", "1")) !== "1") return;
     const [installed, latest] = await Promise.all([
       getYtdlpVersion(),
       checkLatestYtdlp(),
