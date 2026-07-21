@@ -1,10 +1,6 @@
 version: "1.0"
-
-linter: jetbrains/qodana-js:latest
-
-exclude:
-  - name: All
-    paths:
-      - node_modules
-      - dist
-      - src-tauri/target
+linter: qodana-js
+profile:
+  name: qodana.recommended
+include:
+  - name: CheckDependencyLicenses
