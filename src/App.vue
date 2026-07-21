@@ -16,8 +16,8 @@ import { useSchedulerStore } from "@/stores/scheduler.js";
 const ready = ref(null); // null = checking, true/false = known
 
 async function checkForUpdate() {
-  if ((await getSetting("check_on_launch", "1")) !== "1") return;
   try {
+    if ((await getSetting("check_on_launch", "1")) !== "1") return;
     const [installed, latest] = await Promise.all([
       getYtdlpVersion(),
       checkLatestYtdlp(),
@@ -32,14 +32,15 @@ async function checkForUpdate() {
 
 async function onReady() {
   ready.value = true;
-  checkForUpdate();
+  await checkForUpdate();
 }
 
 onMounted(async () => {
-  useDownloadsStore().load();
+  await useDownloadsStore().load();
   useSchedulerStore().startPolling();
-  ready.value = await binariesReady();
-  if (ready.value) checkForUpdate();
+  // A failed check means the binaries aren't usable — fall through to the setup flow.
+  ready.value = await binariesReady().catch(() => false);
+  if (ready.value) await checkForUpdate();
 });
 </script>
 
