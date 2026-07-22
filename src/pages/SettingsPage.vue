@@ -1,24 +1,28 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
+import { storeToRefs } from "pinia";
 import { open } from "@tauri-apps/plugin-dialog";
-import { downloadDir } from "@tauri-apps/api/path";
 import { checkLatestYtdlp, getYtdlpVersion, updateYtdlp } from "@/services/binaries.js";
-import { getSetting, setSetting } from "@/services/settings.js";
+import { setSetting } from "@/services/settings.js";
+import { useSettingsStore } from "@/stores/settings.js";
 import { writeLog } from "@/services/logs.js";
 import { notify } from "@/services/notifications.js";
+
+const {
+  downloadFolder,
+  schedulerEnabled,
+  schedulerRetryFailed,
+  schedulerDefaultTime,
+  notificationsEnabled,
+  defaultFormat,
+  defaultBestQuality,
+} = storeToRefs(useSettingsStore());
 
 const version = ref("…");
 const latest = ref(""); // empty while unknown (offline / GitHub unreachable)
 const upToDate = computed(() => Boolean(latest.value) && latest.value === version.value);
 const updating = ref(false);
 const message = ref("");
-const downloadFolder = ref("");
-const schedulerEnabled = ref(true);
-const schedulerRetryFailed = ref(false);
-const schedulerDefaultTime = ref("02:00");
-const notificationsEnabled = ref(true);
-const defaultFormat = ref("full");
-const defaultBestQuality = ref(false);
 
 async function chooseFolder() {
   const picked = await open({ directory: true, defaultPath: downloadFolder.value });
@@ -64,16 +68,9 @@ async function onToggle(key, enabled) {
   await setSetting(key, enabled ? "1" : "0");
 }
 
-onMounted(async () => {
+onMounted(() => {
   loadVersion();
   loadLatest();
-  downloadFolder.value = (await getSetting("download_dir")) ?? (await downloadDir());
-  schedulerEnabled.value = (await getSetting("scheduler_enabled", "1")) === "1";
-  schedulerRetryFailed.value = (await getSetting("scheduler_retry_failed", "0")) === "1";
-  schedulerDefaultTime.value = await getSetting("scheduler_default_time", "02:00");
-  notificationsEnabled.value = (await getSetting("notifications_enabled", "1")) === "1";
-  defaultFormat.value = await getSetting("default_format", "full");
-  defaultBestQuality.value = (await getSetting("default_best_quality", "0")) === "1";
 });
 </script>
 

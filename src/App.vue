@@ -11,6 +11,7 @@ import {
 import { notify } from "@/services/notifications.js";
 import { useDownloadsStore } from "@/stores/downloads.js";
 import { useSchedulerStore } from "@/stores/scheduler.js";
+import { useSettingsStore } from "@/stores/settings.js";
 
 const ready = ref(null); // null = checking, true/false = known
 
@@ -34,7 +35,7 @@ async function onReady() {
 }
 
 onMounted(async () => {
-  await useDownloadsStore().load();
+  await Promise.all([useDownloadsStore().load(), useSettingsStore().load()]);
   useSchedulerStore().startPolling();
   // A failed check means the binaries aren't usable — fall through to the setup flow.
   ready.value = await binariesReady().catch(() => false);
