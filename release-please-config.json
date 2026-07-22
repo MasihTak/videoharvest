@@ -7,6 +7,7 @@
     ".": {
       "release-type": "node",
       "changelog-path": "CHANGELOG.md",
+      "draft": true,
       "extra-files": [
         {
           "type": "toml",
