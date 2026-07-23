@@ -6,6 +6,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Releases are automated via [Release Please](https://github.com/googleapis/release-please).
 
+## [0.3.0](https://github.com/MasihTak/videoharvest/compare/v0.2.0...v0.3.0) (2026-07-23)
+
+
+### Features
+
+* **about:** add About page with sponsors ([6948749](https://github.com/MasihTak/videoharvest/commit/6948749c91b1ac311bc1c390c1b748906f86f384))
+* **settings:** replace launch-check toggle with live update status ([98acfcb](https://github.com/MasihTak/videoharvest/commit/98acfcbfc9bc4545cb7940d17b2e0f70a942f8ce))
+* **store:** add centralized settings store with load-once pattern ([9d2a0e1](https://github.com/MasihTak/videoharvest/commit/9d2a0e10aff1c99984d2af58de2ad102b908d1d1))
+
+
+### Bug Fixes
+
+* **app:** guard update check against missing binaries ([9b12e7e](https://github.com/MasihTak/videoharvest/commit/9b12e7e9b0c0cc0db502ebeff1d930281438ad05))
+* await binary bootstrap before mount completes ([5d60e4c](https://github.com/MasihTak/videoharvest/commit/5d60e4cee55815a30cb9dda9698b9992fc298f3e))
+* **ci:** harden release pipeline and sync Cargo.lock ([5fe6777](https://github.com/MasihTak/videoharvest/commit/5fe6777be0cd552d4e9b2b6001938e34400b305a))
+* enable eslint in the qodana configuration ([eca7596](https://github.com/MasihTak/videoharvest/commit/eca7596e7d8b57268226e8ed8491f40e1cca21ef))
+
 ## [0.2.0](https://github.com/MasihTak/videoharvest/compare/v0.1.0...v0.2.0) (2026-07-16)
 
 
