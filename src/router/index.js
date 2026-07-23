@@ -7,6 +7,7 @@ const routes = [
   { path: "/scheduler", component: () => import("@/pages/SchedulerPage.vue") },
   { path: "/logs", component: () => import("@/pages/LogsPage.vue") },
   { path: "/settings", component: () => import("@/pages/SettingsPage.vue") },
+  { path: "/about", component: () => import("@/pages/AboutPage.vue") },
 ];
 
 export default createRouter({
