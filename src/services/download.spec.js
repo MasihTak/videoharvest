@@ -28,7 +28,7 @@ describe("parseProgress", () => {
 
   it("parses an HH:MM:SS eta", () => {
     const line = "[download]  10.0% of 1.00GiB at 500.00KiB/s ETA 01:02:03";
-    expect(parseProgress(line).eta).toBe(1 * 3600 + 2 * 60 + 3);
+    expect(parseProgress(line).eta).toBe(3600 + 2 * 60 + 3);
   });
 
   it("handles a line with no speed or eta (e.g. right at completion)", () => {
