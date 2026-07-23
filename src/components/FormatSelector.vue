@@ -1,8 +1,9 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
+import { storeToRefs } from "pinia";
 import { categorizeFormats } from "@/utils/formats.js";
-import { getSetting } from "@/services/settings.js";
 import { resolveDefaultRun } from "@/services/scheduler.js";
+import { useSettingsStore } from "@/stores/settings.js";
 import ModeTabs from "@/components/ModeTabs.vue";
 
 const props = defineProps({
@@ -13,21 +14,21 @@ const categorized = computed(() => categorizeFormats(props.formats));
 
 const emit = defineEmits(["download", "schedule"]);
 
-const mode = ref("full");
+const {
+  schedulerEnabled,
+  schedulerDefaultTime: defaultTime,
+  defaultFormat,
+  defaultBestQuality: bestQuality,
+} = storeToRefs(useSettingsStore());
+
+// Local copy: picking a mode for this download must not overwrite the app-wide default.
+const mode = ref(defaultFormat.value);
 const selected = ref(null);
 const scheduling = ref(false);
 const date = ref("");
 const time = ref("");
-const schedulerEnabled = ref(true);
-const defaultTime = ref("02:00");
-const bestQuality = ref(false);
 
-onMounted(async () => {
-  schedulerEnabled.value = (await getSetting("scheduler_enabled", "1")) === "1";
-  defaultTime.value = await getSetting("scheduler_default_time", "02:00");
-
-  mode.value = await getSetting("default_format", "full");
-  bestQuality.value = (await getSetting("default_best_quality", "0")) === "1";
+onMounted(() => {
   if (bestQuality.value) selectBest();
 });
 

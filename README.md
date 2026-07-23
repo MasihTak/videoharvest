@@ -122,6 +122,13 @@ npm run tauri build
 ```
 ---
 
+## Sponsors ❤
+
+Thanks to those supporting this project:
+
+| [<img src="public/jetbrains.svg" alt="JetBrains" width="70" />](https://www.jetbrains.com/?from=MasihTak) | [<img src="public/bitdefender-seeklogo.svg" alt="BitDefender" width="70" />](https://www.bitdefender.com/?from=MasihTak) | [<img src="public/Mery.svg" alt="Mery" width="70" />](https://www.fashionmery.com/?from=MasihTak) |
+|:---------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------:|
+
 ## Contributing
 
 Contributions are welcome.

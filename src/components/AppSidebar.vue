@@ -52,6 +52,12 @@ const FOOTER_NAV_ITEMS = [
       "M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z",
     ],
   },
+  {
+    to: "/about",
+    label: "About",
+    circle: { cx: 12, cy: 12, r: 9 },
+    paths: ["M12 11v5", "M12 8h.01"],
+  },
 ];
 </script>
 
@@ -60,26 +66,6 @@ const FOOTER_NAV_ITEMS = [
     class="app-sidebar flex-shrink-0"
     :class="{ 'is-open': open, 'is-collapsed': collapsed }"
   >
-    <button
-      type="button"
-      class="sidebar-toggle d-none d-md-flex"
-      :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-      @click="toggleCollapsed"
-    >
-      <svg
-        viewBox="0 0 24 24"
-        width="14"
-        height="14"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M15 6l-6 6 6 6" />
-      </svg>
-    </button>
-
     <div class="sidebar-inner d-flex flex-column">
       <div class="sidebar-logo">
         <img
@@ -156,6 +142,38 @@ const FOOTER_NAV_ITEMS = [
           </span>
           <span class="sidebar-label">{{ item.label }}</span>
         </RouterLink>
+
+        <hr class="sidebar-divider d-none d-md-block" />
+
+        <button
+          type="button"
+          class="sidebar-item sidebar-collapse-btn d-none d-md-flex"
+          :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+          @click="toggleCollapsed"
+        >
+          <span class="sidebar-icon">
+            <svg
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect
+                x="3"
+                y="3"
+                width="18"
+                height="18"
+                rx="2"
+              />
+              <path d="M9 3v18" />
+            </svg>
+          </span>
+          <span class="sidebar-label">{{ collapsed ? "Expand" : "Collapse" }}</span>
+        </button>
       </nav>
     </div>
   </aside>
@@ -231,37 +249,18 @@ const FOOTER_NAV_ITEMS = [
   object-fit: contain;
 }
 
-.sidebar-toggle {
-  position: absolute;
-  top: 26px;
-  right: -12px;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 50%;
-  background-color: #2b2f36;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-  transition: color 0.15s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+.sidebar-divider {
+  margin: 0;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.sidebar-toggle svg {
-  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.sidebar-toggle:hover {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.6);
-  background-color: #3a3f47;
-}
-
-.app-sidebar.is-collapsed .sidebar-toggle svg {
-  transform: rotate(180deg);
+.sidebar-collapse-btn {
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
 }
 
 .sidebar-item {

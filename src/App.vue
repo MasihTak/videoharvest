@@ -8,15 +8,14 @@ import {
   checkLatestYtdlp,
   getYtdlpVersion,
 } from "@/services/binaries.js";
-import { getSetting } from "@/services/settings.js";
 import { notify } from "@/services/notifications.js";
 import { useDownloadsStore } from "@/stores/downloads.js";
 import { useSchedulerStore } from "@/stores/scheduler.js";
+import { useSettingsStore } from "@/stores/settings.js";
 
 const ready = ref(null); // null = checking, true/false = known
 
 async function checkForUpdate() {
-  if ((await getSetting("check_on_launch", "1")) !== "1") return;
   try {
     const [installed, latest] = await Promise.all([
       getYtdlpVersion(),
@@ -32,14 +31,15 @@ async function checkForUpdate() {
 
 async function onReady() {
   ready.value = true;
-  checkForUpdate();
+  await checkForUpdate();
 }
 
 onMounted(async () => {
-  useDownloadsStore().load();
+  await Promise.all([useDownloadsStore().load(), useSettingsStore().load()]);
   useSchedulerStore().startPolling();
-  ready.value = await binariesReady();
-  if (ready.value) checkForUpdate();
+  // A failed check means the binaries aren't usable — fall through to the setup flow.
+  ready.value = await binariesReady().catch(() => false);
+  if (ready.value) await checkForUpdate();
 });
 </script>
 

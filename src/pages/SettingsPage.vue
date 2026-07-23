@@ -1,23 +1,28 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { storeToRefs } from "pinia";
 import { open } from "@tauri-apps/plugin-dialog";
-import { downloadDir } from "@tauri-apps/api/path";
-import { getYtdlpVersion, updateYtdlp } from "@/services/binaries.js";
-import { getSetting, setSetting } from "@/services/settings.js";
+import { checkLatestYtdlp, getYtdlpVersion, updateYtdlp } from "@/services/binaries.js";
+import { setSetting } from "@/services/settings.js";
+import { useSettingsStore } from "@/stores/settings.js";
 import { writeLog } from "@/services/logs.js";
 import { notify } from "@/services/notifications.js";
 
+const {
+  downloadFolder,
+  schedulerEnabled,
+  schedulerRetryFailed,
+  schedulerDefaultTime,
+  notificationsEnabled,
+  defaultFormat,
+  defaultBestQuality,
+} = storeToRefs(useSettingsStore());
+
 const version = ref("…");
-const checkOnLaunch = ref(true);
+const latest = ref(""); // empty while unknown (offline / GitHub unreachable)
+const upToDate = computed(() => Boolean(latest.value) && latest.value === version.value);
 const updating = ref(false);
 const message = ref("");
-const downloadFolder = ref("");
-const schedulerEnabled = ref(true);
-const schedulerRetryFailed = ref(false);
-const schedulerDefaultTime = ref("02:00");
-const notificationsEnabled = ref(true);
-const defaultFormat = ref("full");
-const defaultBestQuality = ref(false);
 
 async function chooseFolder() {
   const picked = await open({ directory: true, defaultPath: downloadFolder.value });
@@ -35,12 +40,20 @@ async function loadVersion() {
   }
 }
 
+async function loadLatest() {
+  try {
+    latest.value = await checkLatestYtdlp();
+  } catch {
+    latest.value = "";
+  }
+}
+
 async function onUpdate() {
   updating.value = true;
   message.value = "";
   try {
     message.value = await updateYtdlp();
-    await loadVersion();
+    await Promise.all([loadVersion(), loadLatest()]);
     await writeLog("SUCCESS", "yt-dlp updated.");
     await notify("yt-dlp updated", `Now on ${version.value}.`);
   } catch (e) {
@@ -55,16 +68,9 @@ async function onToggle(key, enabled) {
   await setSetting(key, enabled ? "1" : "0");
 }
 
-onMounted(async () => {
+onMounted(() => {
   loadVersion();
-  checkOnLaunch.value = (await getSetting("check_on_launch", "1")) === "1";
-  downloadFolder.value = (await getSetting("download_dir")) ?? (await downloadDir());
-  schedulerEnabled.value = (await getSetting("scheduler_enabled", "1")) === "1";
-  schedulerRetryFailed.value = (await getSetting("scheduler_retry_failed", "0")) === "1";
-  schedulerDefaultTime.value = await getSetting("scheduler_default_time", "02:00");
-  notificationsEnabled.value = (await getSetting("notifications_enabled", "1")) === "1";
-  defaultFormat.value = await getSetting("default_format", "full");
-  defaultBestQuality.value = (await getSetting("default_best_quality", "0")) === "1";
+  loadLatest();
 });
 </script>
 
@@ -260,31 +266,11 @@ onMounted(async () => {
             <button
               type="button"
               class="btn-chip btn-chip--primary settings-control"
-              :disabled="updating"
+              :disabled="updating || upToDate"
               @click="onUpdate"
             >
-              {{ updating ? "Updating…" : "Update" }}
+              {{ updating ? "Updating…" : upToDate ? "Up to date!" : "Update" }}
             </button>
-          </div>
-
-          <div class="settings-row">
-            <div class="settings-row-main">
-              <label
-                class="settings-row-label"
-                for="checkOnLaunch"
-              >
-                Check for yt-dlp updates on launch
-              </label>
-            </div>
-            <div class="form-check form-switch mb-0">
-              <input
-                id="checkOnLaunch"
-                v-model="checkOnLaunch"
-                class="form-check-input"
-                type="checkbox"
-                @change="onToggle('check_on_launch', checkOnLaunch)"
-              />
-            </div>
           </div>
         </div>
 

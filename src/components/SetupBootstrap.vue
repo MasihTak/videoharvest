@@ -27,7 +27,7 @@ onMounted(async () => {
     file.value = p.file;
     percent.value = p.total ? Math.round((p.received / p.total) * 100) : 0;
   });
-  run();
+  await run();
 });
 
 onUnmounted(() => unlisten?.());
