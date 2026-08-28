@@ -1001,7 +1001,7 @@ function canRetry(item) {
 
 .downloads {
   --dl-success: oklch(0.52 0.13 150);
-  --dl-danger: oklch(0.52 0.13 65);
+  --dl-danger: oklch(0.52 0.13 25);
 }
 
 .dl-spinner {
