@@ -6,6 +6,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Releases are automated via [Release Please](https://github.com/googleapis/release-please).
 
+## [0.4.0](https://github.com/MasihTak/videoharvest/compare/v0.3.0...v0.4.0) (2026-08-28)
+
+
+### Features
+
+* **about:** separate status and action rows, frame sponsor logos ([80037bf](https://github.com/MasihTak/videoharvest/commit/80037bfc24addccf801d3a04946efe74b791c1ef))
+* **downloads:** collapsible stacked playlist cards with per-video rows ([554f53e](https://github.com/MasihTak/videoharvest/commit/554f53e5d1e26ad7798a8982f26678be5343cf24))
+* **footer:** redesign footer with additional links and improved layout ([c03ee50](https://github.com/MasihTak/videoharvest/commit/c03ee50d0d68eee1fd82649a4b5171afa94c9c7e))
+* **header:** show the current page title and subtitle in the app header ([b67995f](https://github.com/MasihTak/videoharvest/commit/b67995feead9473d5f6aba62bc8dbc2e86cf95ce))
+* **notifications:** register Windows toast AppUserModelID ([5a0a122](https://github.com/MasihTak/videoharvest/commit/5a0a1221d009e05f43225ea6518f237596e96087))
+* **settings:** add icons to settings group headings ([4b9b606](https://github.com/MasihTak/videoharvest/commit/4b9b6066b1be63505b4f085de4074c40a2be720c))
+
+
+### Bug Fixes
+
+* **ci:** add concurrency control and linting step to test workflow ([0063b7f](https://github.com/MasihTak/videoharvest/commit/0063b7f2a08230d4e706a8b5b508bf1198c9c363))
+* **ci:** refine Qodana workflow for efficiency and reduce duplicate scans ([10ba957](https://github.com/MasihTak/videoharvest/commit/10ba95790577c434bb3f4905a7a8ffef63ac1eec))
+* **downloads:** right-align the page toolbar, not the row actions ([e8ae0f9](https://github.com/MasihTak/videoharvest/commit/e8ae0f903c2df80486ab83af93d1cdfeb5f224b0))
+
 ## [0.3.0](https://github.com/MasihTak/videoharvest/compare/v0.2.0...v0.3.0) (2026-07-23)
 
 
