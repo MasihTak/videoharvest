@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Releases are automated via [Release Please](https://github.com/googleapis/release-please).
 
+## [0.4.1](https://github.com/MasihTak/videoharvest/compare/v0.4.0...v0.4.1) (2026-08-28)
+
+
+### Bug Fixes
+
+* **about:** show error state instead of throwing on failed release fetch ([51a385b](https://github.com/MasihTak/videoharvest/commit/51a385b8730ce32f365eff2f9600c86917e2b449))
+* **app:** don't block startup rendering on a failed store load ([22fe157](https://github.com/MasihTak/videoharvest/commit/22fe1573a2eda6dfa3cf7ae112bf385bc21ba52b))
+* **db:** share one connection attempt across concurrent callers ([ed4288c](https://github.com/MasihTak/videoharvest/commit/ed4288c129fa45e999be3f231d116de5575ba65c))
+* **stores:** log errors from fire-and-forget async calls ([cc5f93f](https://github.com/MasihTak/videoharvest/commit/cc5f93ffacd64dcaedd40d56a37c48aff1c51d18))
+
 ## [0.4.0](https://github.com/MasihTak/videoharvest/compare/v0.3.0...v0.4.0) (2026-08-28)
 
 
