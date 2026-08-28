@@ -35,7 +35,9 @@ async function onReady() {
 }
 
 onMounted(async () => {
-  await Promise.all([useDownloadsStore().load(), useSettingsStore().load()]);
+  // Never let a startup task strand the window on a blank screen: whatever
+  // fails here, the app still has to render either setup or the shell.
+  await Promise.allSettled([useDownloadsStore().load(), useSettingsStore().load()]);
   useSchedulerStore().startPolling();
   // A failed check means the binaries aren't usable — fall through to the setup flow.
   ready.value = await binariesReady().catch(() => false);

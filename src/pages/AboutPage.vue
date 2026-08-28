@@ -13,7 +13,10 @@ const updateStatus = ref("checking");
 onMounted(async () => {
   try {
     const response = await fetch("https://api.github.com/repos/MasihTak/videoharvest/releases/latest");
-    if (!response.ok) throw new Error("Failed to fetch latest release");
+    if (!response.ok) {
+      updateStatus.value = "error";
+      return;
+    }
     const { tag_name: latestTag } = await response.json();
     const latestVersion = latestTag.replace(/^v/, "");
     updateStatus.value = latestVersion === APP_VERSION ? "up-to-date" : "update-available";
