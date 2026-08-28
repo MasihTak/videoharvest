@@ -98,8 +98,22 @@ onMounted(load);
 
     <div
       v-if="!loading && !logs.length"
-      class="logs-empty"
+      class="empty-state"
     >
+      <span class="empty-state-icon">
+        <svg
+          viewBox="0 0 24 24"
+          width="26"
+          height="26"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />
+        </svg>
+      </span>
       <h2 class="h6 mb-1">
         No logs yet
       </h2>
@@ -277,10 +291,4 @@ onMounted(load);
   font-variant-numeric: tabular-nums;
 }
 
-.logs-empty {
-  text-align: center;
-  padding: 3.5rem 1.5rem;
-  border: 1px dashed var(--bs-border-color);
-  border-radius: var(--bs-border-radius-lg);
-}
 </style>

@@ -73,29 +73,34 @@ async function handleSubmit(url) {
 
     <div
       v-if="!previewState.loading && !previewState.error && !previewState.data"
-      class="dashboard-empty text-center text-muted mt-5 py-3"
+      class="empty-state mt-4"
     >
-      <svg
-        viewBox="0 0 24 24"
-        width="40"
-        height="40"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.25"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <rect
-          x="2"
-          y="4"
-          width="20"
-          height="16"
-          rx="2"
-        />
-        <path d="m10 9 5 3-5 3V9z" />
-      </svg>
-      <p class="mt-3 mb-0">
+      <span class="empty-state-icon">
+        <svg
+          viewBox="0 0 24 24"
+          width="26"
+          height="26"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <rect
+            x="2"
+            y="4"
+            width="20"
+            height="16"
+            rx="2"
+          />
+          <path d="m10 9 5 3-5 3V9z" />
+        </svg>
+      </span>
+      <h2 class="h6 mb-1">
+        No video loaded
+      </h2>
+      <p class="text-muted small mb-0">
         Paste a URL above to preview and download.
       </p>
     </div>
