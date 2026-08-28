@@ -59,29 +59,24 @@ onMounted(load);
 
 <template>
   <section class="logs">
-    <header class="logs-head">
-      <h1 class="h3 mb-0">
-        Logs
-      </h1>
-      <div class="logs-head-actions">
-        <button
-          type="button"
-          class="btn-chip"
-          :disabled="loading"
-          @click="load"
-        >
-          Refresh
-        </button>
-        <button
-          type="button"
-          class="btn-chip btn-chip--danger"
-          :disabled="loading || !logs.length"
-          @click="clear"
-        >
-          Clear all
-        </button>
-      </div>
-    </header>
+    <div class="logs-head-actions">
+      <button
+        type="button"
+        class="btn-chip"
+        :disabled="loading"
+        @click="load"
+      >
+        Refresh
+      </button>
+      <button
+        type="button"
+        class="btn-chip btn-chip--danger"
+        :disabled="loading || !logs.length"
+        @click="clear"
+      >
+        Clear all
+      </button>
+    </div>
 
     <div
       v-if="logs.length"
@@ -147,17 +142,11 @@ onMounted(load);
   --log-danger: oklch(0.52 0.13 25);
 }
 
-.logs-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
 .logs-head-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 0.4rem;
+  margin-bottom: 1.25rem;
 }
 
 .logs-filters {

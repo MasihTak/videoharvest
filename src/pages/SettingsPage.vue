@@ -76,15 +76,6 @@ onMounted(() => {
 
 <template>
   <section class="settings">
-    <header class="settings-head">
-      <h1 class="h3 mb-1">
-        Settings
-      </h1>
-      <p class="text-muted small mb-0">
-        Defaults applied to new downloads and scheduled runs.
-      </p>
-    </header>
-
     <div class="settings-groups">
       <section class="settings-group">
         <h2 class="settings-group-title">
@@ -287,10 +278,6 @@ onMounted(() => {
 .settings {
   max-width: 860px;
   margin: 0 auto;
-}
-
-.settings-head {
-  margin-bottom: 1.75rem;
 }
 
 .settings-groups {

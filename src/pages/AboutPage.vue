@@ -45,15 +45,6 @@ const AUTHOR_URL = "https://github.com/MasihTak";
 
 <template>
   <section class="about">
-    <header class="about-head">
-      <h1 class="h3 mb-1">
-        About
-      </h1>
-      <p class="text-muted small mb-0">
-        Version, credits, and the tools this app is built on.
-      </p>
-    </header>
-
     <div class="about-panel">
       <div class="about-app">
         <img
@@ -141,10 +132,6 @@ const AUTHOR_URL = "https://github.com/MasihTak";
 .about {
   max-width: 560px;
   margin: 0 auto;
-}
-
-.about-head {
-  margin-bottom: 1.25rem;
 }
 
 .about-panel {

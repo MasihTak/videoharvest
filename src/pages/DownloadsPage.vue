@@ -122,18 +122,16 @@ function canRetry(item) {
 
 <template>
   <section class="downloads">
-    <header class="downloads-head">
-      <div>
-        <h1 class="h3 mb-1">
-          Downloads
-        </h1>
-        <p
-          v-if="summary"
-          class="text-muted small mb-0"
-        >
-          {{ summary }}
-        </p>
-      </div>
+    <header
+      v-if="summary || retryableFailed.length || completedItems.length"
+      class="downloads-head"
+    >
+      <p
+        v-if="summary"
+        class="text-muted small mb-0"
+      >
+        {{ summary }}
+      </p>
 
       <div
         v-if="retryableFailed.length || completedItems.length"
@@ -587,6 +585,7 @@ function canRetry(item) {
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  margin-left: auto;
 }
 
 .downloads {
