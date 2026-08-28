@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
 import { openPath, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { useDownloadsStore } from "@/stores/downloads.js";
@@ -9,7 +9,20 @@ const store = useDownloadsStore();
 const { items } = storeToRefs(store);
 
 // Newest on top; store keeps oldest-first to preserve FIFO queue order.
-const orderedItems = computed(() => [...items.value].reverse());
+// Playlist entries render nested inside their own card, not in this flat list.
+const standaloneItems = computed(() =>
+  [...items.value].filter((it) => !it.playlistId).reverse(),
+);
+
+// Which playlist cards are expanded to show their per-video rows.
+const expandedPlaylists = ref(new Set());
+
+function togglePlaylist(id) {
+  const next = new Set(expandedPlaylists.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  expandedPlaylists.value = next;
+}
 
 // Every status icon shares the same 20x20/stroke-2 svg shell — only the
 // circle-outline presence and inner path(s) vary per status.
@@ -22,10 +35,12 @@ const STATUS = {
 };
 
 const summary = computed(() => {
-  const counts = items.value.reduce((acc, it) => {
-    acc[it.status] = (acc[it.status] ?? 0) + 1;
-    return acc;
-  }, {});
+  const counts = items.value
+    .filter((it) => !it.playlistId)
+    .reduce((acc, it) => {
+      acc[it.status] = (acc[it.status] ?? 0) + 1;
+      return acc;
+    }, {});
   const parts = [];
   if (counts.downloading) parts.push(`${counts.downloading} downloading`);
   if (counts.pending) parts.push(`${counts.pending} queued`);
@@ -54,21 +69,27 @@ const playlistGroups = computed(() => {
     groups.get(it.playlistId).items.push(it);
   }
   return [...groups.values()]
-    .map((g) => ({
-      ...g,
-      total: g.items.length,
-      done: g.items.filter((it) => it.status === "completed").length,
-      failed: g.items.filter((it) => it.status === "failed").length,
-      running: g.items.some((it) => it.status === "downloading" || it.status === "pending"),
-      // Measures work left, not bytes fetched — so it never runs backwards when
-      // yt-dlp restarts at 0% for the audio stream, and always lands on 100%.
-      percent: Math.round(
-        g.items.reduce(
-          (sum, it) => sum + (SETTLED.includes(it.status) ? 100 : it.progress),
-          0,
-        ) / g.items.length,
-      ),
-    }))
+    .map((g) => {
+      const total = g.items.length;
+      const done = g.items.filter((it) => it.status === "completed").length;
+      const failed = g.items.filter((it) => it.status === "failed").length;
+      return {
+        ...g,
+        total,
+        done,
+        failed,
+        summary: `${done}/${total} complete${failed ? ` · ${failed} failed` : ""}`,
+        running: g.items.some((it) => it.status === "downloading" || it.status === "pending"),
+        // Measures work left, not bytes fetched — so it never runs backwards when
+        // yt-dlp restarts at 0% for the audio stream, and always lands on 100%.
+        percent: Math.round(
+          g.items.reduce(
+            (sum, it) => sum + (SETTLED.includes(it.status) ? 100 : it.progress),
+            0,
+          ) / total,
+        ),
+      };
+    })
     .reverse();
 });
 const retryableFailed = computed(() =>
@@ -163,30 +184,228 @@ function canRetry(item) {
       <li
         v-for="g in playlistGroups"
         :key="g.id"
-        class="playlist-group"
+        class="playlist-group-wrap"
+        :class="{ 'is-expanded': expandedPlaylists.has(g.id) }"
       >
-        <div class="playlist-group-head">
-          <span
-            class="playlist-group-title"
-            :title="g.title"
-          >{{ g.title || "Playlist" }}</span>
-          <span class="playlist-group-count">
-            {{ g.done }}/{{ g.total }} complete<template v-if="g.failed"> · {{ g.failed }} failed</template>
-          </span>
+        <div
+          v-if="!expandedPlaylists.has(g.id)"
+          class="playlist-stack playlist-stack--back"
+          aria-hidden="true"
+        />
+        <div
+          v-if="!expandedPlaylists.has(g.id)"
+          class="playlist-stack playlist-stack--mid"
+          aria-hidden="true"
+        />
+
+        <div class="playlist-card">
           <button
-            v-if="g.running"
             type="button"
-            class="btn-chip btn-chip--danger"
-            @click="store.cancelPlaylist(g.id)"
+            class="playlist-toggle"
+            :aria-expanded="expandedPlaylists.has(g.id)"
+            @click="togglePlaylist(g.id)"
           >
-            Cancel all
+            <span class="playlist-icon">
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect
+                  x="7"
+                  y="3"
+                  width="14"
+                  height="10"
+                  rx="2"
+                />
+                <path d="M3 8v10a2 2 0 0 0 2 2h10" />
+              </svg>
+            </span>
+
+            <span class="playlist-body">
+              <span class="playlist-title-line">
+                <span
+                  class="playlist-title"
+                  :title="g.title"
+                >{{ g.title || "Playlist" }}</span>
+                <span class="playlist-count">{{ g.summary }}</span>
+              </span>
+              <span class="dl-progress">
+                <span
+                  class="dl-progress-bar"
+                  :style="{ transform: `scaleX(${g.percent / 100})` }"
+                />
+              </span>
+            </span>
+
+            <span
+              class="playlist-chevron"
+              :class="{ 'is-open': expandedPlaylists.has(g.id) }"
+              aria-hidden="true"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </span>
           </button>
-        </div>
-        <div class="dl-progress">
-          <div
-            class="dl-progress-bar"
-            :style="{ transform: `scaleX(${g.percent / 100})` }"
-          />
+
+          <ul
+            v-if="expandedPlaylists.has(g.id)"
+            class="playlist-videos"
+          >
+            <li
+              v-for="v in g.items"
+              :key="v.id"
+              class="playlist-video"
+            >
+              <span
+                class="dl-status plv-status"
+                :class="`dl-status--${STATUS[v.status].tone}`"
+                aria-hidden="true"
+              >
+                <svg
+                  :class="{ 'dl-spinner': STATUS[v.status].spin }"
+                  viewBox="0 0 24 24"
+                  width="14"
+                  height="14"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle
+                    v-if="STATUS[v.status].circle"
+                    cx="12"
+                    cy="12"
+                    r="9"
+                  />
+                  <path
+                    v-for="d in STATUS[v.status].paths"
+                    :key="d"
+                    :d="d"
+                  />
+                </svg>
+              </span>
+
+              <div class="plv-main">
+                <p
+                  class="plv-title"
+                  :title="v.title || v.url"
+                >
+                  {{ v.title || v.url }}
+                </p>
+                <p
+                  v-if="v.status === 'downloading'"
+                  class="plv-meta"
+                >
+                  <span class="dl-meta-strong">{{ Math.round(v.progress) }}%</span>
+                  <span v-if="v.speed"> · {{ humanSize(v.speed) }}/s</span>
+                  <span v-if="v.eta != null"> · ETA {{ eta(v.eta) }}</span>
+                </p>
+                <p
+                  v-else-if="v.status === 'failed' && v.error"
+                  class="plv-meta plv-meta--error"
+                  :title="v.errorRaw || v.error"
+                >
+                  {{ v.error }}
+                </p>
+              </div>
+
+              <span
+                class="dl-label"
+                :class="`dl-label--${STATUS[v.status].tone}`"
+              >
+                {{ STATUS[v.status].label }}
+              </span>
+
+              <div class="plv-actions">
+                <button
+                  v-if="v.status === 'downloading'"
+                  type="button"
+                  class="plv-act plv-act--cancel"
+                  aria-label="Cancel"
+                  title="Cancel"
+                  @click="store.cancel(v.id)"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="13"
+                    height="13"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect
+                      x="6"
+                      y="6"
+                      width="12"
+                      height="12"
+                      rx="1.5"
+                    />
+                  </svg>
+                </button>
+                <button
+                  v-if="canRetry(v)"
+                  type="button"
+                  class="plv-act plv-act--retry"
+                  aria-label="Retry"
+                  title="Retry"
+                  @click="store.retry(v.id)"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="13"
+                    height="13"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M21 12a9 9 0 1 1-2.6-6.4" />
+                    <path d="M21 3v6h-6" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="plv-act plv-act--dismiss"
+                  aria-label="Remove from list"
+                  title="Remove"
+                  @click="store.remove(v.id)"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="13"
+                    height="13"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </li>
+          </ul>
         </div>
       </li>
     </ul>
@@ -219,13 +438,13 @@ function canRetry(item) {
     </div>
 
     <TransitionGroup
-      v-else
+      v-else-if="standaloneItems.length"
       name="dl-item"
       tag="ul"
       class="dl-list"
     >
       <li
-        v-for="item in orderedItems"
+        v-for="item in standaloneItems"
         :key="item.id"
         class="dl-row"
       >
@@ -408,23 +627,96 @@ function canRetry(item) {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 1rem;
 }
 
-.playlist-group {
-  padding: 0.75rem 1rem;
+/* A collapsed playlist fans two faint layers out behind its header so the
+   batch reads as a stack; the extra bottom margin gives them room to peek. */
+.playlist-group-wrap {
+  position: relative;
+  margin-bottom: 0.625rem;
+}
+
+.playlist-group-wrap.is-expanded {
+  margin-bottom: 0;
+}
+
+.playlist-stack {
+  position: absolute;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-lg);
+  pointer-events: none;
+}
+
+.playlist-stack--back {
+  left: 12px;
+  right: 12px;
+  top: 8px;
+  bottom: -8px;
+  background: color-mix(in oklch, var(--bs-body-bg) 60%, var(--vh-surface));
+  z-index: 0;
+}
+
+.playlist-stack--mid {
+  left: 6px;
+  right: 6px;
+  top: 4px;
+  bottom: -4px;
+  background: color-mix(in oklch, var(--bs-body-bg) 82%, var(--vh-surface));
+  z-index: 1;
+}
+
+.playlist-card {
+  position: relative;
+  z-index: 2;
   border: 1px solid var(--bs-border-color);
   border-radius: var(--bs-border-radius-lg);
   background: var(--bs-body-bg);
+  overflow: hidden;
+  box-shadow: 0 1px 2px oklch(0.18 0.014 25 / 0.04);
 }
 
-.playlist-group-head {
+.playlist-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  width: 100%;
+  padding: 0.875rem 1.125rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.playlist-toggle:focus-visible {
+  outline: 2px solid var(--vh-primary);
+  outline-offset: -2px;
+}
+
+.playlist-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  color: var(--vh-muted);
+  background: var(--bs-secondary-bg);
+}
+
+.playlist-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.playlist-title-line {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.playlist-group-title {
+.playlist-title {
   flex: 1;
   min-width: 0;
   font-size: 0.875rem;
@@ -434,10 +726,129 @@ function canRetry(item) {
   text-overflow: ellipsis;
 }
 
-.playlist-group-count {
+.playlist-count {
   flex-shrink: 0;
   font-size: 0.75rem;
   color: var(--vh-muted);
+}
+
+.dl-progress {
+  display: block;
+}
+
+.playlist-chevron {
+  flex-shrink: 0;
+  display: flex;
+  color: var(--vh-muted);
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.playlist-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.playlist-videos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.playlist-video {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.7rem 1.125rem 0.7rem 3.25rem;
+  border-top: 1px solid var(--bs-border-color);
+}
+
+.plv-status {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+.plv-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.plv-title {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plv-meta {
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  color: var(--vh-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plv-meta--error {
+  color: var(--dl-danger);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.plv-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.plv-act {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1),
+    color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.plv-act:focus-visible {
+  outline: 2px solid var(--vh-primary);
+  outline-offset: 1px;
+}
+
+.plv-act--cancel {
+  color: var(--vh-primary);
+  border: 1px solid color-mix(in oklch, var(--vh-primary) 35%, transparent);
+}
+
+.plv-act--cancel:hover {
+  color: var(--vh-primary-text);
+  background: var(--vh-primary);
+}
+
+.plv-act--retry {
+  color: var(--vh-primary-text);
+  background: var(--vh-primary);
+  border: 1px solid var(--vh-primary);
+}
+
+.plv-act--retry:hover {
+  background: color-mix(in oklch, var(--vh-primary), black 12%);
+}
+
+.plv-act--dismiss {
+  color: var(--vh-muted);
+  border: 1px solid var(--bs-border-color);
+}
+
+.plv-act--dismiss:hover {
+  color: var(--vh-ink);
+  background: var(--bs-secondary-bg);
 }
 
 .dl-list {
@@ -647,6 +1058,10 @@ function canRetry(item) {
   }
 
   .dl-progress-bar {
+    transition: none;
+  }
+
+  .playlist-chevron {
     transition: none;
   }
 }
