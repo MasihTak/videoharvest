@@ -619,6 +619,7 @@ function canRetry(item) {
   display: flex;
   flex-shrink: 0;
   gap: 0.4rem;
+  margin-left: auto;
 }
 
 .playlist-groups {
@@ -996,7 +997,6 @@ function canRetry(item) {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  margin-left: auto;
 }
 
 .downloads {
