@@ -59,29 +59,24 @@ onMounted(load);
 
 <template>
   <section class="logs">
-    <header class="logs-head">
-      <h1 class="h3 mb-0">
-        Logs
-      </h1>
-      <div class="logs-head-actions">
-        <button
-          type="button"
-          class="btn-chip"
-          :disabled="loading"
-          @click="load"
-        >
-          Refresh
-        </button>
-        <button
-          type="button"
-          class="btn-chip btn-chip--danger"
-          :disabled="loading || !logs.length"
-          @click="clear"
-        >
-          Clear all
-        </button>
-      </div>
-    </header>
+    <div class="logs-head-actions">
+      <button
+        type="button"
+        class="btn-chip"
+        :disabled="loading"
+        @click="load"
+      >
+        Refresh
+      </button>
+      <button
+        type="button"
+        class="btn-chip btn-chip--danger"
+        :disabled="loading || !logs.length"
+        @click="clear"
+      >
+        Clear all
+      </button>
+    </div>
 
     <div
       v-if="logs.length"
@@ -103,8 +98,22 @@ onMounted(load);
 
     <div
       v-if="!loading && !logs.length"
-      class="logs-empty"
+      class="empty-state"
     >
+      <span class="empty-state-icon">
+        <svg
+          viewBox="0 0 24 24"
+          width="26"
+          height="26"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />
+        </svg>
+      </span>
       <h2 class="h6 mb-1">
         No logs yet
       </h2>
@@ -121,7 +130,6 @@ onMounted(load);
         v-for="log in visible"
         :key="log.id"
         class="logs-row"
-        :class="`logs-row--${tone(log.level)}`"
       >
         <span
           class="logs-badge"
@@ -147,17 +155,11 @@ onMounted(load);
   --log-danger: oklch(0.52 0.13 25);
 }
 
-.logs-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
 .logs-head-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 0.4rem;
+  margin-bottom: 1.25rem;
 }
 
 .logs-filters {
@@ -225,27 +227,10 @@ onMounted(load);
   align-items: baseline;
   gap: 0.85rem;
   padding: 0.7rem 1.1rem;
-  border-left: 3px solid transparent;
 }
 
 .logs-row + .logs-row {
   border-top: 1px solid var(--bs-border-color);
-}
-
-.logs-row--info {
-  border-left-color: var(--log-info);
-}
-
-.logs-row--success {
-  border-left-color: var(--log-success);
-}
-
-.logs-row--warning {
-  border-left-color: var(--log-warning);
-}
-
-.logs-row--danger {
-  border-left-color: var(--log-danger);
 }
 
 .logs-badge {
@@ -288,10 +273,4 @@ onMounted(load);
   font-variant-numeric: tabular-nums;
 }
 
-.logs-empty {
-  text-align: center;
-  padding: 3.5rem 1.5rem;
-  border: 1px dashed var(--bs-border-color);
-  border-radius: var(--bs-border-radius-lg);
-}
 </style>

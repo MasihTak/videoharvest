@@ -1,8 +1,10 @@
 [package]
 name = "videoharvest"
 version = "0.3.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "A modern, cross-platform desktop application for downloading videos and playlists using yt-dlp"
+authors = ["MasihTak"]
+license = "MIT"
+repository = "https://github.com/MasihTak/videoharvest"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -27,3 +29,5 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 ureq = "2"
 
+[target.'cfg(windows)'.dependencies]
+winreg = "0.55"

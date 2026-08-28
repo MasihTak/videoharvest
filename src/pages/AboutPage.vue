@@ -45,15 +45,6 @@ const AUTHOR_URL = "https://github.com/MasihTak";
 
 <template>
   <section class="about">
-    <header class="about-head">
-      <h1 class="h3 mb-1">
-        About
-      </h1>
-      <p class="text-muted small mb-0">
-        Version, credits, and the tools this app is built on.
-      </p>
-    </header>
-
     <div class="about-panel">
       <div class="about-app">
         <img
@@ -71,7 +62,7 @@ const AUTHOR_URL = "https://github.com/MasihTak";
         </div>
       </div>
 
-      <div class="about-meta">
+      <div class="about-status">
         <span class="badge text-bg-secondary">v{{ APP_VERSION }}</span>
         <span
           v-if="updateStatus === 'up-to-date'"
@@ -87,6 +78,9 @@ const AUTHOR_URL = "https://github.com/MasihTak";
           <span class="update-dot is-outdated" />
           Update available
         </span>
+      </div>
+
+      <div class="about-actions">
         <button
           type="button"
           class="btn-chip"
@@ -124,11 +118,13 @@ const AUTHOR_URL = "https://github.com/MasihTak";
             class="sponsor-item"
             @click="openUrl(sponsor.url)"
           >
-            <img
-              :src="sponsor.logo"
-              :alt="sponsor.name"
-              class="sponsor-logo"
-            />
+            <span class="sponsor-logo-frame">
+              <img
+                :src="sponsor.logo"
+                :alt="sponsor.name"
+                class="sponsor-logo"
+              />
+            </span>
             <span class="sponsor-name">{{ sponsor.name }}</span>
           </button>
         </div>
@@ -139,12 +135,8 @@ const AUTHOR_URL = "https://github.com/MasihTak";
 
 <style scoped>
 .about {
-  max-width: 560px;
+  max-width: 620px;
   margin: 0 auto;
-}
-
-.about-head {
-  margin-bottom: 1.25rem;
 }
 
 .about-panel {
@@ -179,11 +171,18 @@ const AUTHOR_URL = "https://github.com/MasihTak";
   margin: 0;
 }
 
-.about-meta {
+.about-status {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.875rem;
+}
+
+.about-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
 }
 
 .update-status {
@@ -225,28 +224,39 @@ const AUTHOR_URL = "https://github.com/MasihTak";
 .sponsor-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: 0.6rem;
 }
 
 .sponsor-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.6rem;
-  border: none;
+  gap: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--bs-border-color);
   border-radius: var(--bs-border-radius);
-  background: transparent;
+  background: var(--bs-body-bg);
   cursor: pointer;
-  transition: background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: background-color 0.15s cubic-bezier(0.25, 1, 0.5, 1),
+    border-color 0.15s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .sponsor-item:hover {
   background: var(--bs-secondary-bg);
+  border-color: color-mix(in oklch, var(--bs-border-color), var(--vh-ink) 15%);
+}
+
+.sponsor-logo-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .sponsor-logo {
-  height: 24px;
-  width: 24px;
+  max-height: 24px;
+  max-width: 28px;
   object-fit: contain;
 }
 

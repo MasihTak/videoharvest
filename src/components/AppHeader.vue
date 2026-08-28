@@ -1,9 +1,13 @@
 <script setup>
+import { useRoute } from "vue-router";
+
 defineEmits(["toggle-sidebar"]);
+
+const route = useRoute();
 </script>
 
 <template>
-  <header class="app-header d-flex align-items-center gap-3 border-bottom px-4 py-3">
+  <header class="app-header d-flex align-items-center gap-3 border-bottom">
     <button
       type="button"
       class="header-toggle d-md-none"
@@ -23,29 +27,47 @@ defineEmits(["toggle-sidebar"]);
         <path d="M4 6h16M4 12h16M4 18h16" />
       </svg>
     </button>
-    <h2 class="app-title mb-0">
-      VideoHarvest
-    </h2>
+    <div class="header-titles min-w-0">
+      <h1 class="app-title mb-0">
+        {{ route.meta.title }}
+      </h1>
+      <p
+        v-if="route.meta.subtitle"
+        class="app-subtitle mb-0"
+      >
+        {{ route.meta.subtitle }}
+      </p>
+    </div>
   </header>
 </template>
 
 <style scoped>
 .app-header {
-  min-height: 64px;
+  min-height: 66px;
+  padding: 0.875rem 2rem;
   background-color: var(--bs-body-bg);
 }
 
-.app-logo {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
+.header-titles {
+  overflow: hidden;
 }
 
 .app-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
   color: var(--vh-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-subtitle {
+  font-size: 0.8125rem;
+  color: var(--vh-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-toggle {
@@ -55,6 +77,7 @@ defineEmits(["toggle-sidebar"]);
   width: 36px;
   height: 36px;
   padding: 0;
+  flex-shrink: 0;
   color: var(--vh-ink);
   border: 1px solid var(--bs-border-color);
   border-radius: var(--bs-border-radius);

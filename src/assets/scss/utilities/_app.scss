@@ -1,5 +1,8 @@
 // Global rendering
 body {
+  // Warm off-white content surface; header/footer stay pure white so the
+  // chrome reads as a distinct layer and cards lift off the page.
+  background-color: var(--vh-surface);
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

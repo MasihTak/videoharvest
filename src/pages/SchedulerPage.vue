@@ -23,15 +23,6 @@ onMounted(() => scheduler.load());
 
 <template>
   <section class="scheduler">
-    <header class="scheduler-head">
-      <h1 class="h3 mb-1">
-        Scheduler
-      </h1>
-      <p class="text-muted small mb-0">
-        Pick "Schedule" instead of "Download now" on the Dashboard to queue a video for later.
-      </p>
-    </header>
-
     <div
       v-if="!items.length"
       class="empty-state"
@@ -137,10 +128,6 @@ onMounted(() => scheduler.load());
 .scheduler {
   max-width: 860px;
   margin: 0 auto;
-}
-
-.scheduler-head {
-  margin-bottom: 1.25rem;
 }
 
 .sched-list {

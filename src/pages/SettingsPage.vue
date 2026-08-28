@@ -76,18 +76,25 @@ onMounted(() => {
 
 <template>
   <section class="settings">
-    <header class="settings-head">
-      <h1 class="h3 mb-1">
-        Settings
-      </h1>
-      <p class="text-muted small mb-0">
-        Defaults applied to new downloads and scheduled runs.
-      </p>
-    </header>
-
     <div class="settings-groups">
       <section class="settings-group">
         <h2 class="settings-group-title">
+          <span class="settings-group-icon">
+            <svg
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 3v12m0 0 4-4m-4 4-4-4" />
+              <path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2" />
+            </svg>
+          </span>
           Downloads
         </h2>
 
@@ -160,6 +167,28 @@ onMounted(() => {
 
       <section class="settings-group">
         <h2 class="settings-group-title">
+          <span class="settings-group-icon">
+            <svg
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect
+                x="3"
+                y="4"
+                width="18"
+                height="17"
+                rx="2"
+              />
+              <path d="M3 9h18M8 2v4m8-4v4" />
+            </svg>
+          </span>
           Scheduler
         </h2>
 
@@ -226,6 +255,22 @@ onMounted(() => {
 
       <section class="settings-group">
         <h2 class="settings-group-title">
+          <span class="settings-group-icon">
+            <svg
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          </span>
           Notifications
         </h2>
 
@@ -254,6 +299,22 @@ onMounted(() => {
 
       <section class="settings-group">
         <h2 class="settings-group-title">
+          <span class="settings-group-icon">
+            <svg
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m4 6 4 4-4 4" />
+              <path d="M12 16h8" />
+            </svg>
+          </span>
           yt-dlp
         </h2>
 
@@ -289,10 +350,6 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-.settings-head {
-  margin-bottom: 1.75rem;
-}
-
 .settings-groups {
   display: flex;
   flex-direction: column;
@@ -300,11 +357,27 @@ onMounted(() => {
 }
 
 .settings-group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--vh-ink);
   margin: 0 0 0.6rem;
+}
+
+.settings-group-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  color: var(--vh-muted);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-secondary-bg);
 }
 
 .settings-rows {
