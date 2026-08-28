@@ -118,7 +118,8 @@ export const useDownloadsStore = defineStore("downloads", () => {
   function pump() {
     if (active()) return;
     const next = items.value.find((it) => it.status === "pending");
-    if (next) start(next);
+    // Fire-and-forget: pump() is called from sync paths (event handlers, fail()).
+    if (next) start(next).catch((error) => writeLog("ERROR", `Download start failed: ${error}`));
   }
 
   async function fail(item, msg) {

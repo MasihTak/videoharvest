@@ -67,11 +67,17 @@ export const useSchedulerStore = defineStore("scheduler", () => {
     await load();
   }
 
+  // Fire-and-forget on purpose: startup rendering must not wait on the DB.
+  // Failures are logged instead of surfacing as unhandled rejections.
+  function pollOnce() {
+    runDue().catch((error) => writeLog("ERROR", `Scheduler poll failed: ${error}`));
+  }
+
   function startPolling() {
     if (timer) return;
-    if (!loaded) load();
-    runDue();
-    timer = setInterval(runDue, POLL_MS);
+    if (!loaded) load().catch((error) => writeLog("ERROR", `Scheduler load failed: ${error}`));
+    pollOnce();
+    timer = setInterval(pollOnce, POLL_MS);
   }
 
   if (import.meta.hot) {
