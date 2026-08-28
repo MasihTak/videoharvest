@@ -23,7 +23,7 @@ const sidebarOpen = ref(false);
     />
     <div class="d-flex flex-column flex-grow-1 min-vw-0">
       <AppHeader @toggle-sidebar="sidebarOpen = !sidebarOpen" />
-      <main class="flex-grow-1 overflow-auto p-4">
+      <main class="app-main flex-grow-1 overflow-auto">
         <slot />
       </main>
       <AppFooter />
@@ -32,6 +32,10 @@ const sidebarOpen = ref(false);
 </template>
 
 <style scoped>
+.app-main {
+  padding: 2rem;
+}
+
 .sidebar-backdrop {
   position: fixed;
   inset: 0;

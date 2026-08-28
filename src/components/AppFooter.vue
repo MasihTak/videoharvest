@@ -1,6 +1,6 @@
 <template>
   <footer
-    class="app-footer d-flex flex-wrap align-items-center justify-content-between gap-2 border-top px-4 py-2"
+    class="app-footer d-flex flex-wrap align-items-center justify-content-between gap-2 border-top"
   >
     <div class="d-flex flex-wrap align-items-center gap-3 small">
       <span class="text-muted">
@@ -42,6 +42,7 @@
 
 <style scoped>
 .app-footer {
+  padding: 0.625rem 2rem;
   background-color: var(--bs-body-bg);
 }
 
