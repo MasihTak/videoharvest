@@ -130,7 +130,6 @@ onMounted(load);
         v-for="log in visible"
         :key="log.id"
         class="logs-row"
-        :class="`logs-row--${tone(log.level)}`"
       >
         <span
           class="logs-badge"
@@ -228,27 +227,10 @@ onMounted(load);
   align-items: baseline;
   gap: 0.85rem;
   padding: 0.7rem 1.1rem;
-  border-left: 3px solid transparent;
 }
 
 .logs-row + .logs-row {
   border-top: 1px solid var(--bs-border-color);
-}
-
-.logs-row--info {
-  border-left-color: var(--log-info);
-}
-
-.logs-row--success {
-  border-left-color: var(--log-success);
-}
-
-.logs-row--warning {
-  border-left-color: var(--log-warning);
-}
-
-.logs-row--danger {
-  border-left-color: var(--log-danger);
 }
 
 .logs-badge {
