@@ -1,25 +1,34 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import logo from "@/assets/logo.png";
 
-const APP_VERSION = "0.2.0";
 const REPO_URL = "https://github.com/MasihTak/videoharvest";
 const RELEASES_URL = `${REPO_URL}/releases`;
 
+const appVersion = ref("");
 // "checking" | "up-to-date" | "update-available" | "error"
 const updateStatus = ref("checking");
 
+// Numeric collation compares dotted versions segment-wise, so 0.10.0 > 0.9.0.
+const versionOrder = new Intl.Collator(undefined, { numeric: true });
+
 onMounted(async () => {
   try {
+    appVersion.value = await getVersion();
+
     const response = await fetch("https://api.github.com/repos/MasihTak/videoharvest/releases/latest");
     if (!response.ok) {
       updateStatus.value = "error";
       return;
     }
+
     const { tag_name: latestTag } = await response.json();
     const latestVersion = latestTag.replace(/^v/, "");
-    updateStatus.value = latestVersion === APP_VERSION ? "up-to-date" : "update-available";
+    const isUpdateAvailable = versionOrder.compare(latestVersion, appVersion.value) > 0;
+
+    updateStatus.value = isUpdateAvailable ? "update-available" : "up-to-date";
   } catch {
     updateStatus.value = "error";
   }
@@ -66,7 +75,10 @@ const AUTHOR_URL = "https://github.com/MasihTak";
       </div>
 
       <div class="about-status">
-        <span class="badge text-bg-secondary">v{{ APP_VERSION }}</span>
+        <span
+          v-if="appVersion"
+          class="badge text-bg-secondary"
+        >v{{ appVersion }}</span>
         <span
           v-if="updateStatus === 'up-to-date'"
           class="update-status"
