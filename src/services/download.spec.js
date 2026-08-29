@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { buildArgs, parseProgress, parseFilepath, classifyError } from "./download.js";
+import {
+  buildArgs,
+  parseProgress,
+  parseFilepath,
+  isStreamStart,
+  classifyError,
+} from "./download.js";
 
 describe("buildArgs", () => {
   it("builds the yt-dlp arg list from selector/dir/url", () => {
@@ -54,6 +60,18 @@ describe("parseFilepath", () => {
 
   it("returns null for lines without the prefix", () => {
     expect(parseFilepath("[Merger] Merging formats into video.mp4")).toBeNull();
+  });
+});
+
+describe("isStreamStart", () => {
+  it("matches the Destination line that begins each stream", () => {
+    expect(isStreamStart(String.raw`[download] Destination: C:\Videos\clip.f137.mp4`)).toBe(true);
+  });
+
+  it("ignores progress lines and other yt-dlp output", () => {
+    expect(isStreamStart("[download]  30.0% of ~ 45.00MiB")).toBe(false);
+    expect(isStreamStart("[Merger] Merging formats into \"clip.mp4\"")).toBe(false);
+    expect(isStreamStart("")).toBe(false);
   });
 });
 

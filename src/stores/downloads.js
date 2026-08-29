@@ -5,7 +5,13 @@ import { defineStore, acceptHMRUpdate } from "pinia";
 import { ref } from "vue";
 import { downloadDir } from "@tauri-apps/api/path";
 import { runYtdlp, cancelProcess, onOutput, onDone } from "@/services/sidecar.js";
-import { buildArgs, parseProgress, parseFilepath, classifyError } from "@/services/download.js";
+import {
+  buildArgs,
+  parseProgress,
+  parseFilepath,
+  isStreamStart,
+  classifyError,
+} from "@/services/download.js";
 import { getDb } from "@/services/db.js";
 import { getSetting } from "@/services/settings.js";
 import { writeLog } from "@/services/logs.js";
@@ -221,10 +227,16 @@ export const useDownloadsStore = defineStore("downloads", () => {
     if (!item || item.status !== "downloading") return;
     const p = parseProgress(payload.line);
     if (p) {
-      if (p.percent != null) item.progress = p.percent;
+      // On fragmented streams yt-dlp's percent is measured against an estimated
+      // total that keeps being revised, so it jitters backwards (30% -> 25%).
+      // Only a new stream may reset the bar; see isStreamStart below.
+      if (p.percent != null) item.progress = Math.max(item.progress, p.percent);
       item.speed = p.speed;
       item.eta = p.eta;
       return;
+    }
+    if (isStreamStart(payload.line)) {
+      item.progress = 0;
     }
     const file = parseFilepath(payload.line);
     if (file) {

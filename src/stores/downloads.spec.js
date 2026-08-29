@@ -91,6 +91,30 @@ describe("onOutput handling", () => {
     onOutput({ id: item.id, line: "[download]  99.0% of 10.00MiB" });
     expect(item.progress).toBe(0);
   });
+
+  it("never lets a re-estimated percent drag the bar backwards", async () => {
+    await store.enqueue({ url: "https://x", title: "Video", selector: "137" });
+    const onOutput = latestHandler(sidecar.onOutput);
+    const item = store.items[0];
+    item.status = "downloading";
+    onOutput({ id: item.id, line: "[download]  30.0% of ~ 45.00MiB" });
+    onOutput({ id: item.id, line: "[download]  25.0% of ~ 52.00MiB" });
+    expect(item.progress).toBe(30);
+    onOutput({ id: item.id, line: "[download]  34.0% of ~ 52.00MiB" });
+    expect(item.progress).toBe(34);
+  });
+
+  it("resets the bar when yt-dlp starts the next stream", async () => {
+    await store.enqueue({ url: "https://x", title: "Video", selector: "137" });
+    const onOutput = latestHandler(sidecar.onOutput);
+    const item = store.items[0];
+    item.status = "downloading";
+    onOutput({ id: item.id, line: "[download] 100.0% of 45.00MiB" });
+    onOutput({ id: item.id, line: "[download] Destination: clip.f251.webm" });
+    expect(item.progress).toBe(0);
+    onOutput({ id: item.id, line: "[download]  10.0% of 4.00MiB" });
+    expect(item.progress).toBe(10);
+  });
 });
 
 describe("fail", () => {
