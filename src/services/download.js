@@ -54,6 +54,13 @@ export function parseProgress(line) {
   };
 }
 
+// yt-dlp prints one "Destination:" line per stream it starts (video, then
+// audio when they're downloaded separately), which is the only point where a
+// percent legitimately restarts from 0.
+export function isStreamStart(line) {
+  return /^\[download\] Destination: /.test(line);
+}
+
 export function parseFilepath(line) {
   return line.startsWith(FILE_PREFIX) ? line.slice(FILE_PREFIX.length) : null;
 }

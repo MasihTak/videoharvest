@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
 import { openPath, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { useDownloadsStore } from "@/stores/downloads.js";
+import { writeLog } from "@/services/logs.js";
 import { humanSize } from "@/utils/formats.js";
 
 const store = useDownloadsStore();
@@ -118,18 +119,24 @@ function eta(seconds) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+// The file can be gone or the path unopenable — log it instead of failing
+// silently, so a dead button leaves a trace on the Logs page.
 async function openFile(item) {
   if (!item.location) return;
   try {
     await openPath(item.location);
-  } catch { /* file gone */ }
+  } catch (error) {
+    await writeLog("ERROR", `Could not open ${item.location}: ${error}`);
+  }
 }
 
 async function showInFolder(item) {
   if (!item.location) return;
   try {
     await revealItemInDir(item.location);
-  } catch { /* file gone */ }
+  } catch (error) {
+    await writeLog("ERROR", `Could not reveal ${item.location}: ${error}`);
+  }
 }
 
 function canRetry(item) {
