@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Releases are automated via [Release Please](https://github.com/googleapis/release-please).
 
+## [0.4.2](https://github.com/MasihTak/videoharvest/compare/v0.4.1...v0.4.2) (2026-08-29)
+
+
+### Bug Fixes
+
+* **about:** read app version at runtime for the update check ([6619419](https://github.com/MasihTak/videoharvest/commit/6619419689aee09fbddf1c367e793e28a5a10a62))
+* **downloads:** keep the progress bar monotonic across fragmented streams ([29fd6a0](https://github.com/MasihTak/videoharvest/commit/29fd6a07b3d7d4ff2414c55a77437f9c219b15d2))
+* **downloads:** log open/reveal failures instead of swallowing them ([276567a](https://github.com/MasihTak/videoharvest/commit/276567a6d350291ae81fe8ece222caaf6c7d394e))
+
 ## [0.4.1](https://github.com/MasihTak/videoharvest/compare/v0.4.0...v0.4.1) (2026-08-28)
 
 
