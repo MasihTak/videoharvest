@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { useDownloadsStore } from "@/stores/downloads.js";
 import { useRouter } from "vue-router";
-import { pickThumbnail } from "@/utils/formats.js";
+import { formatDuration, pickThumbnail } from "@/utils/formats.js";
 import ModeTabs from "@/components/ModeTabs.vue";
 
 const props = defineProps({
@@ -17,7 +17,7 @@ const entries = computed(() =>
     index: i,
     title: e.title || e.url || `Video ${i + 1}`,
     url: e.url ?? e.webpage_url,
-    duration: e.duration_string,
+    duration: formatDuration(e.duration_string),
     thumbnail: pickThumbnail(e),
   })),
 );

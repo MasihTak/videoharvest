@@ -3,7 +3,7 @@
 
   # VideoHarvest
 
-  A modern, cross-platform desktop application for downloading videos and playlists using yt-dlp — without touching the command line1
+  A modern, cross-platform desktop application for downloading videos and playlists using yt-dlp — without touching the command line!
 
   ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue)
 
@@ -13,7 +13,7 @@
 
 ## Overview
 
-VideoHarvest is built with **Tauri 2**, **Vue 3**, **Bootstrap 5**, **SCSS**, and **Rust**. It bundles **yt-dlp** and **FFmpeg**, so you can start downloading content right after installation, with no additional setup required.
+VideoHarvest is built with **Tauri 2**, **Vue 3**, **Bootstrap 5**, **SCSS**, and **Rust**. **yt-dlp** and **FFmpeg** are downloaded automatically on first launch, so you can start downloading content right after installation, with no manual setup required.
 
 ## Features
 
@@ -45,11 +45,11 @@ Paste a URL and VideoHarvest automatically:
 
 Track downloads through their full lifecycle: Pending, Scheduled, Downloading, Completed, Failed, Cancelled.
 
-Supported actions: Pause, Resume, Retry, Remove.
+Supported actions: Cancel, Retry, Remove — plus bulk "retry all failed" and "clear completed".
 
 ### Download Scheduler
 
-Schedule downloads for later today, tomorrow, or on a daily recurring basis, with native desktop notifications to keep you informed.
+Schedule a download for a specific date and time, or use the saved default time (today if it hasn't passed, otherwise tomorrow). Each schedule runs once, with native desktop notifications when it does.
 
 ### Download History & Logs
 
@@ -92,7 +92,8 @@ Supported packages:
 
 **Requirements**
 
-- Node.js 22+
+- Node.js 24.16+
+- pnpm 11+
 - Rust (stable)
 - Tauri 2
 
@@ -106,19 +107,26 @@ cd videoharvest
 **Install dependencies**
 
 ```bash
-npm install
+pnpm install
 ```
 
 **Start development**
 
 ```bash
-npm run tauri dev
+pnpm tauri dev
 ```
 
 **Build the application**
 
 ```bash
-npm run tauri build
+pnpm tauri build
+```
+
+**Checks**
+
+```bash
+pnpm lint          # ESLint
+pnpm test          # Vitest
 ```
 ---
 
@@ -135,8 +143,8 @@ Contributions are welcome.
 
 Please read:
 
--   CONTRIBUTING.md
--   CODE_OF_CONDUCT.md
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
 Before opening a pull request.
 
@@ -145,7 +153,7 @@ Before opening a pull request.
 
 This project is licensed under the MIT License.
 
-See LICENSE for details.
+See [LICENSE](LICENSE) for details.
 
 ## Disclaimer
 
