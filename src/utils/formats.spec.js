@@ -94,6 +94,35 @@ describe("categorizeFormats", () => {
     expect(video.map((f) => f.id)).toEqual(["b"]);
   });
 
+  it("prefers a direct https format over a higher-bitrate HLS variant at the same height", () => {
+    const { video, full } = categorizeFormats([
+      { format_id: "312", acodec: "none", vcodec: "avc1", height: 1080, ext: "mp4", tbr: 7400, protocol: "m3u8_native" },
+      { format_id: "137", acodec: "none", vcodec: "avc1", height: 1080, ext: "mp4", tbr: 5000, protocol: "https", filesize: 50_000_000 },
+      { format_id: "140", acodec: "mp4a", vcodec: "none", abr: 128, ext: "m4a", protocol: "https", filesize: 3_000_000 },
+    ]);
+    expect(video.map((f) => f.id)).toEqual(["137"]);
+    expect(video[0].size).toBe(humanSize(50_000_000));
+    expect(full[0].size).toBe(humanSize(53_000_000));
+  });
+
+  it("keeps the highest-bitrate HLS format when no direct stream exists", () => {
+    const { video } = categorizeFormats([
+      { format_id: "low", acodec: "none", vcodec: "avc1", height: 720, ext: "mp4", tbr: 1000, protocol: "m3u8_native" },
+      { format_id: "high", acodec: "none", vcodec: "avc1", height: 720, ext: "mp4", tbr: 4000, protocol: "m3u8_native" },
+    ]);
+    expect(video.map((f) => f.id)).toEqual(["high"]);
+  });
+
+  it("prefers a direct audio stream over a higher-bitrate HLS one for the full-bucket total", () => {
+    const { audio, full } = categorizeFormats([
+      { format_id: "233", acodec: "mp4a", vcodec: "none", abr: 200, ext: "m4a", protocol: "m3u8_native" },
+      { format_id: "251", acodec: "opus", vcodec: "none", abr: 160, ext: "webm", protocol: "https", filesize: 3_500_000 },
+      { format_id: "137", acodec: "none", vcodec: "avc1", height: 1080, ext: "mp4", tbr: 5000, protocol: "https", filesize: 50_000_000 },
+    ]);
+    expect(audio[0].id).toBe("251");
+    expect(full[0].size).toBe(humanSize(53_500_000));
+  });
+
   it("falls back to filesize_approx when filesize is absent", () => {
     const { audio } = categorizeFormats([
       { format_id: "x", acodec: "opus", vcodec: "none", abr: 128, ext: "webm", filesize_approx: 1024 },
@@ -113,9 +142,51 @@ describe("categorizeFormats", () => {
   it("appends fps to the label only above 30fps", () => {
     const { video } = categorizeFormats([
       { format_id: "a", acodec: "none", vcodec: "avc1", height: 1080, fps: 60, ext: "mp4" },
-      { format_id: "b", acodec: "none", vcodec: "avc1", height: 1080, fps: 24, ext: "webm" },
+      { format_id: "b", acodec: "none", vcodec: "avc1", height: 720, fps: 24, ext: "webm" },
+    ]);
+    expect(video.map((f) => f.label)).toEqual(["1080p60 · mp4", "720p · webm"]);
+  });
+
+  it("does not repeat the fps that format_note already carries", () => {
+    const { video } = categorizeFormats([
+      { format_id: "a", acodec: "none", vcodec: "avc1", height: 2160, fps: 60, format_note: "2160p60", ext: "webm" },
+    ]);
+    expect(video[0].label).toBe("2160p60 · webm");
+  });
+
+  it("rounds a fractional frame rate in the height fallback", () => {
+    const { video } = categorizeFormats([
+      { format_id: "a", acodec: "none", vcodec: "avc1", height: 1080, fps: 59.94, ext: "mp4" },
     ]);
     expect(video[0].label).toBe("1080p60 · mp4");
+  });
+
+  it("estimates size from bitrate x duration when no filesize is reported", () => {
+    const { video, full } = categorizeFormats(
+      [
+        { format_id: "v", acodec: "none", vcodec: "avc1", height: 720, ext: "mp4", tbr: 1000, protocol: "m3u8_native" },
+        { format_id: "a", acodec: "mp4a", vcodec: "none", abr: 128, ext: "m4a", tbr: 128, protocol: "m3u8_native" },
+      ],
+      // 8 seconds at 1000 kbit/s = 1,000,000 bytes.
+      8,
+    );
+    expect(video[0].size).toBe(`~${humanSize(1_000_000)}`);
+    expect(full[0].size).toBe(`~${humanSize(1_128_000)}`);
+  });
+
+  it("leaves the size unknown when neither a filesize nor a duration is available", () => {
+    const { video } = categorizeFormats([
+      { format_id: "v", acodec: "none", vcodec: "avc1", height: 720, ext: "mp4", tbr: 1000, protocol: "m3u8_native" },
+    ]);
+    expect(video[0].size).toBe("—");
+  });
+
+  it("does not hedge a real filesize just because the duration is known", () => {
+    const { video } = categorizeFormats(
+      [{ format_id: "v", acodec: "none", vcodec: "avc1", height: 720, ext: "mp4", tbr: 1000, filesize: 42 }],
+      8,
+    );
+    expect(video[0].size).toBe("42 B");
   });
 
   it("builds a plain format_id selector for a heightless video with no bonus audio", () => {

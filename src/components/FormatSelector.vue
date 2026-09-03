@@ -8,9 +8,10 @@ import ModeTabs from "@/components/ModeTabs.vue";
 
 const props = defineProps({
   formats: { type: Array, required: true },
+  duration: { type: Number, default: null },
 });
 
-const categorized = computed(() => categorizeFormats(props.formats));
+const categorized = computed(() => categorizeFormats(props.formats, props.duration));
 
 const emit = defineEmits(["download", "schedule"]);
 

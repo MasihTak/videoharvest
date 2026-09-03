@@ -286,6 +286,7 @@ async function onSchedule({ selector, format, date, time }) {
       <FormatSelector
         v-if="!isPlaylist && data.formats?.length"
         :formats="data.formats"
+        :duration="data.duration ?? null"
         class="mt-3"
         @download="onDownload"
         @schedule="onSchedule"
