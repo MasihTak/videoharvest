@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Releases are automated via [Release Please](https://github.com/googleapis/release-please).
 
+## [0.5.0](https://github.com/MasihTak/videoharvest/compare/v0.4.2...v0.5.0) (2026-09-03)
+
+
+### Features
+
+* **formats:** estimate manifest-only sizes and prefer direct streams ([ef4a6c1](https://github.com/MasihTak/videoharvest/commit/ef4a6c161a5b68c4cddb7ebe4ab3f0f782310b95))
+* **formats:** normalize sub-minute duration strings ([9489289](https://github.com/MasihTak/videoharvest/commit/9489289060a0d3761f5539ab5814212557de6d3d))
+
 ## [0.4.2](https://github.com/MasihTak/videoharvest/compare/v0.4.1...v0.4.2) (2026-08-29)
 
 
