@@ -33,6 +33,19 @@ const FFMPEG_URL: &str = "https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip";
 #[cfg(target_os = "macos")]
 const FFMPEG_ARCHIVE: &str = "ffmpeg-archive.zip";
 
+#[cfg(target_os = "windows")]
+const QJS_URL: &str =
+    "https://github.com/quickjs-ng/quickjs/releases/latest/download/qjs-windows-x86_64.exe";
+#[cfg(target_os = "linux")]
+const QJS_URL: &str =
+    "https://github.com/quickjs-ng/quickjs/releases/latest/download/qjs-linux-x86_64";
+#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+const QJS_URL: &str =
+    "https://github.com/quickjs-ng/quickjs/releases/latest/download/qjs-darwin-arm64";
+#[cfg(all(target_os = "macos", target_arch = "x86_64"))]
+const QJS_URL: &str =
+    "https://github.com/quickjs-ng/quickjs/releases/latest/download/qjs-darwin-x86_64";
+
 #[derive(Clone, serde::Serialize)]
 struct Progress {
     file: String,
@@ -71,11 +84,17 @@ pub fn ffmpeg_path(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(bin_dir(app)?.join(format!("ffmpeg{EXE}")))
 }
 
-pub fn is_ready(app: &AppHandle) -> Result<bool, String> {
-    Ok(ytdlp_path(app)?.exists() && ffmpeg_path(app)?.exists())
+/// QuickJS-NG — the JS runtime yt-dlp needs to solve YouTube's player challenges.
+/// Kept named `qjs` so yt-dlp's bare `--js-runtimes quickjs` lookup would also find it.
+pub fn qjs_path(app: &AppHandle) -> Result<PathBuf, String> {
+    Ok(bin_dir(app)?.join(format!("qjs{EXE}")))
 }
 
-/// Download both binaries into the app-data bin dir. Emits `bootstrap://progress`.
+pub fn is_ready(app: &AppHandle) -> Result<bool, String> {
+    Ok(ytdlp_path(app)?.exists() && ffmpeg_path(app)?.exists() && qjs_path(app)?.exists())
+}
+
+/// Download all managed binaries into the app-data bin dir. Emits `bootstrap://progress`.
 pub fn bootstrap(app: &AppHandle) -> Result<(), String> {
     let dir = bin_dir(app)?;
 
@@ -87,6 +106,12 @@ pub fn bootstrap(app: &AppHandle) -> Result<(), String> {
 
     if !ffmpeg_path(app)?.exists() {
         fetch_ffmpeg(app, &dir)?;
+    }
+
+    let qjs = qjs_path(app)?;
+    if !qjs.exists() {
+        download(app, QJS_URL, "qjs", &qjs)?;
+        set_executable(&qjs)?;
     }
     Ok(())
 }

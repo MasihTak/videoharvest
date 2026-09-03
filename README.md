@@ -13,7 +13,7 @@
 
 ## Overview
 
-VideoHarvest is built with **Tauri 2**, **Vue 3**, **Bootstrap 5**, **SCSS**, and **Rust**. **yt-dlp** and **FFmpeg** are downloaded automatically on first launch, so you can start downloading content right after installation, with no manual setup required.
+VideoHarvest is built with **Tauri 2**, **Vue 3**, **Bootstrap 5**, **SCSS**, and **Rust**. **yt-dlp**, **FFmpeg**, and a **QuickJS** runtime (required by yt-dlp for YouTube extraction) are downloaded automatically on first launch, so you can start downloading content right after installation, with no manual setup required.
 
 ## Features
 

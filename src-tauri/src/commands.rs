@@ -15,6 +15,14 @@ pub fn run_ytdlp(
     args.insert(0, "--ffmpeg-location".into());
     args.insert(1, ffmpeg.to_string_lossy().into_owned());
 
+    // Managed QuickJS runtime, so YouTube extraction doesn't warn/degrade for
+    // lack of one. Guarded by exists() so a partial bootstrap still runs yt-dlp.
+    let qjs = binaries::qjs_path(&app)?;
+    if qjs.exists() {
+        args.insert(0, "--js-runtimes".into());
+        args.insert(1, format!("quickjs:{}", qjs.to_string_lossy()));
+    }
+
     let program = binaries::ytdlp_path(&app)?;
     download::run(app, registry, &program, id, args)
 }
