@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { humanSize, pickThumbnail, categorizeFormats } from "./formats.js";
+import { humanSize, formatDuration, pickThumbnail, categorizeFormats } from "./formats.js";
 
 describe("humanSize", () => {
   it("formats bytes into the largest whole unit", () => {
@@ -11,6 +11,24 @@ describe("humanSize", () => {
   it("returns an em dash for null/undefined", () => {
     expect(humanSize(null)).toBe("—");
     expect(humanSize(undefined)).toBe("—");
+  });
+});
+
+describe("formatDuration", () => {
+  it("adds the missing 0: prefix for sub-minute durations", () => {
+    expect(formatDuration("52")).toBe("0:52");
+    expect(formatDuration("5")).toBe("0:05");
+  });
+
+  it("leaves durations that already have a minute part untouched", () => {
+    expect(formatDuration("1:30")).toBe("1:30");
+    expect(formatDuration("2:05:09")).toBe("2:05:09");
+  });
+
+  it("returns null when there is no duration", () => {
+    expect(formatDuration(null)).toBeNull();
+    expect(formatDuration(undefined)).toBeNull();
+    expect(formatDuration("")).toBeNull();
   });
 });
 

@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import FormatSelector from "@/components/FormatSelector.vue";
 import PlaylistPicker from "@/components/PlaylistPicker.vue";
-import { pickThumbnail } from "@/utils/formats.js";
+import { formatDuration, pickThumbnail } from "@/utils/formats.js";
 import { useDownloadsStore } from "@/stores/downloads.js";
 import { useSchedulerStore } from "@/stores/scheduler.js";
 import { nextRunOnce } from "@/services/scheduler.js";
@@ -28,7 +28,7 @@ const platform = computed(() => {
 
 const channel = computed(() => props.data.channel ?? props.data.uploader);
 const thumbnail = computed(() => pickThumbnail(props.data));
-const duration = computed(() => props.data.duration_string);
+const duration = computed(() => formatDuration(props.data.duration_string));
 const count = computed(() => props.data.playlist_count ?? props.data.entries?.length);
 
 const viewCount = computed(() => {

@@ -12,6 +12,14 @@ export function humanSize(bytes) {
   return `${n.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
+// yt-dlp's duration_string omits the leading "0:" for sub-minute clips, so a
+// 52-second video reads as a bare "52" instead of a time.
+export function formatDuration(durationString) {
+  if (!durationString) return null;
+  const text = String(durationString);
+  return text.includes(":") ? text : `0:${text.padStart(2, "0")}`;
+}
+
 // yt-dlp's flat-playlist extraction never sets `thumbnail`, only the
 // `thumbnails[]` array (ascending by size) — fall back to its largest entry.
 export function pickThumbnail(data) {
