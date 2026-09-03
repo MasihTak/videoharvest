@@ -112,11 +112,19 @@ function fileName(path) {
   return path ? path.split(/[\\/]/).pop() : "";
 }
 
-function eta(seconds) {
+function clock(seconds) {
   if (seconds == null) return "";
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+// A clipped download is otherwise indistinguishable from a full one in history.
+function clipRange(item) {
+  if (item.sectionStart == null && item.sectionEnd == null) return null;
+  if (item.sectionEnd == null) return `from ${clock(item.sectionStart)}`;
+  if (item.sectionStart == null) return `to ${clock(item.sectionEnd)}`;
+  return `${clock(item.sectionStart)}–${clock(item.sectionEnd)}`;
 }
 
 // The file can be gone or the path unopenable — log it instead of failing
@@ -322,7 +330,7 @@ function canRetry(item) {
                 >
                   <span class="dl-meta-strong">{{ Math.round(v.progress) }}%</span>
                   <span v-if="v.speed"> · {{ humanSize(v.speed) }}/s</span>
-                  <span v-if="v.eta != null"> · ETA {{ eta(v.eta) }}</span>
+                  <span v-if="v.eta != null"> · ETA {{ clock(v.eta) }}</span>
                 </p>
                 <p
                   v-else-if="v.status === 'failed' && v.error"
@@ -494,6 +502,13 @@ function canRetry(item) {
               {{ item.title || item.url }}
             </p>
             <span
+              v-if="clipRange(item)"
+              class="dl-clip"
+              title="Only this part of the video was downloaded"
+            >
+              {{ clipRange(item) }}
+            </span>
+            <span
               class="dl-label"
               :class="`dl-label--${STATUS[item.status].tone}`"
             >
@@ -523,7 +538,7 @@ function canRetry(item) {
             <template v-if="item.status === 'downloading'">
               <span class="dl-meta-strong">{{ Math.round(item.progress) }}%</span>
               <span v-if="item.speed"> · {{ humanSize(item.speed) }}/s</span>
-              <span v-if="item.eta != null"> · ETA {{ eta(item.eta) }}</span>
+              <span v-if="item.eta != null"> · ETA {{ clock(item.eta) }}</span>
             </template>
             <template v-else-if="item.status === 'failed' && item.error">
               <span
@@ -918,6 +933,13 @@ function canRetry(item) {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.75rem;
+}
+
+.dl-clip {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--vh-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .dl-title {

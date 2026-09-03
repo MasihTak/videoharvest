@@ -35,6 +35,14 @@ Paste a URL and VideoHarvest automatically:
 - Download video only, audio only, or merged formats
 - Save preferred formats as defaults
 
+### Clip a Time Range
+
+Download only part of a video instead of the whole thing. Pick a format, hit **Clip**, and enter a start and end time as `90`, `2:30`, or `1:02:30` — leave either field blank to run to the start or end of the video.
+
+Cuts are frame-accurate, so the clip begins exactly where you asked. That accuracy costs a re-encode around each cut, which makes a clip slower than a plain download. Clipped files are saved with the range in the filename, so they never overwrite the full video, and the range is kept in your history — retrying a clip re-downloads the same clip.
+
+Single videos only; playlists always download in full.
+
 ### Playlist Support
 
 - Entire playlists

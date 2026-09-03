@@ -28,5 +28,11 @@ pub fn migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/0004_downloads_playlist.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 5,
+            description: "add section_start and section_end to downloads for clip ranges",
+            sql: include_str!("../migrations/0005_downloads_section.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }

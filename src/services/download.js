@@ -4,14 +4,37 @@
 
 const FILE_PREFIX = "VHF|";
 
-export function buildArgs({ selector, dir, url }) {
+// Parse a user-typed timestamp -> seconds. Accepts "90", "2:30", "1:02:30".
+// Returns null for anything else. Unlike parseHumanEta below (which reads
+// trusted yt-dlp output), this sits at a trust boundary and must reject junk.
+const TIMESTAMP_RE = /^\d+(:[0-5]?\d){0,2}$/;
+
+export function parseTimestamp(text) {
+  const trimmed = String(text ?? "").trim();
+  if (!TIMESTAMP_RE.test(trimmed)) return null;
+  return trimmed.split(":").reduce((total, part) => total * 60 + Number(part), 0);
+}
+
+export function buildArgs({ selector, dir, url, sectionStart = null, sectionEnd = null }) {
+  const isClip = sectionStart != null || sectionEnd != null;
+  const from = sectionStart ?? 0;
+  const to = sectionEnd ?? "inf";
+
   return [
     "-P",
     dir,
     "-o",
-    "%(title)s.%(ext)s",
+    // A clip must not collide with the full video's filename, or yt-dlp skips
+    // it as already-downloaded (or overwrites the other one).
+    isClip ? `%(title)s [clip ${from}-${to}].%(ext)s` : "%(title)s.%(ext)s",
     "-f",
     selector,
+    // Without --force-keyframes-at-cuts the cut snaps back to the nearest
+    // keyframe, so a clip can start several seconds early. The flag re-encodes
+    // around each cut to land on the exact mark — slower, but what was asked for.
+    ...(isClip
+      ? ["--download-sections", `*${from}-${to}`, "--force-keyframes-at-cuts"]
+      : []),
     "--newline",
     "--progress",
     "--print",

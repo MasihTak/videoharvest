@@ -66,22 +66,26 @@ const resolution = computed(() => {
   return `${h}p`;
 });
 
-async function onDownload({ selector, format }) {
+async function onDownload({ selector, format, sectionStart, sectionEnd }) {
   await downloads.enqueue({
     url: props.data.webpage_url ?? props.data.original_url,
     title: props.data.title,
     selector,
     format,
+    sectionStart,
+    sectionEnd,
   });
   router.push("/downloads");
 }
 
-async function onSchedule({ selector, format, date, time }) {
+async function onSchedule({ selector, format, date, time, sectionStart, sectionEnd }) {
   const downloadId = await downloads.enqueue({
     url: props.data.webpage_url ?? props.data.original_url,
     title: props.data.title,
     selector,
     format,
+    sectionStart,
+    sectionEnd,
     autostart: false,
   });
   await scheduler.create({ downloadId, nextRun: nextRunOnce(date, time) });

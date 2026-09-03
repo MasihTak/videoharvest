@@ -1,11 +1,31 @@
 import { describe, it, expect } from "vitest";
 import {
   buildArgs,
+  parseTimestamp,
   parseProgress,
   parseFilepath,
   isStreamStart,
   classifyError,
 } from "./download.js";
+
+describe("parseTimestamp", () => {
+  it("parses bare seconds, mm:ss, and hh:mm:ss", () => {
+    expect(parseTimestamp("90")).toBe(90);
+    expect(parseTimestamp("2:30")).toBe(150);
+    expect(parseTimestamp("1:02:30")).toBe(3750);
+  });
+
+  it("returns null for input that isn't a timestamp", () => {
+    expect(parseTimestamp("a:b")).toBeNull();
+    expect(parseTimestamp("-30")).toBeNull();
+    expect(parseTimestamp("1:2:3:4")).toBeNull();
+  });
+
+  it("returns null for empty input", () => {
+    expect(parseTimestamp("")).toBeNull();
+    expect(parseTimestamp(null)).toBeNull();
+  });
+});
 
 describe("buildArgs", () => {
   it("builds the yt-dlp arg list from selector/dir/url", () => {
@@ -23,6 +43,30 @@ describe("buildArgs", () => {
       "after_move:VHF|%(filepath)s",
       "https://youtu.be/x",
     ]);
+  });
+
+  it("adds --download-sections and a clip-tagged filename for a time range", () => {
+    const args = buildArgs({
+      selector: "137+140",
+      dir: "C:/dl",
+      url: "https://youtu.be/x",
+      sectionStart: 150,
+      sectionEnd: 180,
+    });
+    expect(args).toContain("--download-sections");
+    expect(args[args.indexOf("--download-sections") + 1]).toBe("*150-180");
+    expect(args).toContain("--force-keyframes-at-cuts");
+    expect(args[args.indexOf("-o") + 1]).toBe("%(title)s [clip 150-180].%(ext)s");
+  });
+
+  it("leaves the range open-ended when only a start is given", () => {
+    const args = buildArgs({
+      selector: "137+140",
+      dir: "C:/dl",
+      url: "https://youtu.be/x",
+      sectionStart: 150,
+    });
+    expect(args[args.indexOf("--download-sections") + 1]).toBe("*150-inf");
   });
 });
 

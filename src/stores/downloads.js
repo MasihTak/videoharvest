@@ -62,12 +62,14 @@ export const useDownloadsStore = defineStore("downloads", () => {
     format,
     playlistId = null,
     playlistTitle = null,
+    sectionStart = null,
+    sectionEnd = null,
     autostart = true,
   }) {
     const db = await getDb();
     const res = await db.execute(
-      "INSERT INTO downloads (url, title, status, format, selector, playlist_id, playlist_title) VALUES ($1, $2, 'pending', $3, $4, $5, $6)",
-      [url, title, format, selector, playlistId, playlistTitle],
+      "INSERT INTO downloads (url, title, status, format, selector, playlist_id, playlist_title, section_start, section_end) VALUES ($1, $2, 'pending', $3, $4, $5, $6, $7, $8)",
+      [url, title, format, selector, playlistId, playlistTitle, sectionStart, sectionEnd],
     );
     items.value.push({
       id: `dl-${Date.now()}-${res.lastInsertId}`,
@@ -78,6 +80,8 @@ export const useDownloadsStore = defineStore("downloads", () => {
       selector,
       playlistId,
       playlistTitle,
+      sectionStart,
+      sectionEnd,
       status: "pending",
       progress: 0,
       speed: null,
@@ -115,7 +119,16 @@ export const useDownloadsStore = defineStore("downloads", () => {
     await writeLog("INFO", `Started download: ${item.title || item.url}`);
     try {
       const dir = await effectiveDir();
-      await runYtdlp(item.id, buildArgs({ selector: item.selector, dir, url: item.url }));
+      await runYtdlp(
+        item.id,
+        buildArgs({
+          selector: item.selector,
+          dir,
+          url: item.url,
+          sectionStart: item.sectionStart,
+          sectionEnd: item.sectionEnd,
+        }),
+      );
     } catch (e) {
       await fail(item, String(e));
     }
@@ -198,7 +211,7 @@ export const useDownloadsStore = defineStore("downloads", () => {
       "UPDATE downloads SET status = 'failed', error = 'Interrupted when the app closed — retry to resume.' WHERE status IN ('downloading', 'pending')",
     );
     const rows = await db.select(
-      "SELECT id, url, title, status, location, format, progress, selector, error, playlist_id, playlist_title FROM downloads ORDER BY id ASC",
+      "SELECT id, url, title, status, location, format, progress, selector, error, playlist_id, playlist_title, section_start, section_end FROM downloads ORDER BY id ASC",
     );
     items.value = rows.map((r) => ({
       id: `db-${r.id}`,
@@ -209,6 +222,8 @@ export const useDownloadsStore = defineStore("downloads", () => {
       selector: r.selector,
       playlistId: r.playlist_id,
       playlistTitle: r.playlist_title,
+      sectionStart: r.section_start,
+      sectionEnd: r.section_end,
       status: r.status,
       progress: r.progress ?? 0,
       speed: null,

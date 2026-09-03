@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import { categorizeFormats } from "@/utils/formats.js";
 import { resolveDefaultRun } from "@/services/scheduler.js";
+import { parseTimestamp } from "@/services/download.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import ModeTabs from "@/components/ModeTabs.vue";
 
@@ -28,6 +29,40 @@ const selected = ref(null);
 const scheduling = ref(false);
 const date = ref("");
 const time = ref("");
+const clipping = ref(false);
+const clipStart = ref("");
+const clipEnd = ref("");
+
+// null = field left blank (open-ended), undefined = typed something unparseable.
+function clipSeconds(text) {
+  return text.trim() === "" ? null : (parseTimestamp(text) ?? undefined);
+}
+
+const clipRange = computed(() => ({
+  start: clipSeconds(clipStart.value),
+  end: clipSeconds(clipEnd.value),
+}));
+
+const clipError = computed(() => {
+  if (!clipping.value) return null;
+  const { start, end } = clipRange.value;
+  if (start === undefined || end === undefined) return "Use mm:ss or hh:mm:ss.";
+  if (start === null && end === null) return "Enter a start or an end time.";
+  if (start != null && end != null && end <= start) return "End must be after start.";
+  if (start != null && props.duration != null && start >= props.duration) {
+    return "Start is past the end of the video.";
+  }
+  return null;
+});
+
+// A clip only applies while the panel is open and the range is valid.
+const activeClip = computed(() =>
+  clipping.value && !clipError.value
+    ? { sectionStart: clipRange.value.start, sectionEnd: clipRange.value.end }
+    : { sectionStart: null, sectionEnd: null },
+);
+
+const canSubmit = computed(() => Boolean(selectedRow.value) && !clipError.value);
 
 onMounted(() => {
   if (bestQuality.value) selectBest();
@@ -53,18 +88,22 @@ function setMode(key) {
 }
 
 function requestDownload() {
-  if (selectedRow.value) {
-    emit("download", { selector: selectedRow.value.selector, format: selectedRow.value.label });
-  }
+  if (!canSubmit.value) return;
+  emit("download", {
+    selector: selectedRow.value.selector,
+    format: selectedRow.value.label,
+    ...activeClip.value,
+  });
 }
 
 function requestSchedule() {
-  if (!selectedRow.value || !date.value || !time.value) return;
+  if (!canSubmit.value || !date.value || !time.value) return;
   emit("schedule", {
     selector: selectedRow.value.selector,
     format: selectedRow.value.label,
     date: date.value,
     time: time.value,
+    ...activeClip.value,
   });
   scheduling.value = false;
   date.value = "";
@@ -113,10 +152,19 @@ function requestSchedule() {
       <button
         type="button"
         class="btn btn-primary flex-grow-1"
-        :disabled="!selectedRow"
+        :disabled="!canSubmit"
         @click="requestDownload"
       >
         Download now
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        :disabled="!selectedRow"
+        :aria-pressed="clipping"
+        @click="clipping = !clipping"
+      >
+        Clip
       </button>
       <button
         v-if="schedulerEnabled"
@@ -129,6 +177,66 @@ function requestSchedule() {
         Schedule
       </button>
     </div>
+
+    <Transition name="fade-up">
+      <div
+        v-if="clipping"
+        class="schedule-panel mt-2 row g-2 align-items-end"
+      >
+        <div class="col-12">
+          <p class="text-muted small mb-0">
+            Download only part of the video. Leave a field blank for the start or end of the video.
+          </p>
+        </div>
+
+        <div class="col-6">
+          <label
+            class="form-label small"
+            for="clipStart"
+          >Start</label>
+          <input
+            id="clipStart"
+            v-model="clipStart"
+            type="text"
+            inputmode="numeric"
+            placeholder="2:30"
+            class="form-control form-control-sm"
+            :aria-invalid="Boolean(clipError)"
+            aria-describedby="clipError"
+          />
+        </div>
+
+        <div class="col-6">
+          <label
+            class="form-label small"
+            for="clipEnd"
+          >End</label>
+          <input
+            id="clipEnd"
+            v-model="clipEnd"
+            type="text"
+            inputmode="numeric"
+            placeholder="3:00"
+            class="form-control form-control-sm"
+            :aria-invalid="Boolean(clipError)"
+            aria-describedby="clipError"
+          />
+        </div>
+
+        <div
+          id="clipError"
+          class="col-12"
+          role="alert"
+        >
+          <p
+            v-if="clipError"
+            class="text-danger small mb-0"
+          >
+            {{ clipError }}
+          </p>
+        </div>
+      </div>
+    </Transition>
 
     <Transition name="fade-up">
       <form
@@ -178,6 +286,7 @@ function requestSchedule() {
           <button
             type="submit"
             class="btn btn-sm btn-primary w-100"
+            :disabled="!canSubmit"
           >
             Confirm
           </button>
